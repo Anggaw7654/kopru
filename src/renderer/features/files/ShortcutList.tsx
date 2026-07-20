@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import type { Shortcut } from '@shared/types/files.js'
 import { useProfileStore } from '../../stores/profiles.js'
+import { usePrompt } from '../../components/PromptDialog.js'
 
 interface Props {
   profileId: string
@@ -20,6 +21,7 @@ export function ShortcutList({
   profileId, shortcuts, currentPath, onNavigate,
 }: Props): React.JSX.Element {
   const reloadProfiles = useProfileStore((s) => s.load)
+  const [ask, promptDialog] = usePrompt()
 
   /**
    * Written through main and re-read from the profile store — the list is never
@@ -56,18 +58,26 @@ export function ShortcutList({
       return
     }
     const suggested = currentPath.split('/').filter(Boolean).at(-1) ?? currentPath
-    const label = window.prompt(
-      `Kısayol adı:\n${currentPath}`,
-      suggested,
-    )
-    if (label === null || label.trim() === '') return
-    persist([...shortcuts, { id: newId(), label: label.trim(), path: currentPath }])
+    void ask({
+      title: 'Kısayol adı',
+      detail: currentPath,
+      defaultValue: suggested,
+      confirmLabel: 'Ekle',
+    }).then((label) => {
+      if (label === null) return
+      persist([...shortcuts, { id: newId(), label, path: currentPath }])
+    })
   }
 
   const rename = (shortcut: Shortcut): void => {
-    const label = window.prompt(`Yeni ad:\n${shortcut.path}`, shortcut.label)
-    if (label === null || label.trim() === '') return
-    persist(shortcuts.map((s) => (s.id === shortcut.id ? { ...s, label: label.trim() } : s)))
+    void ask({
+      title: 'Yeni ad',
+      detail: shortcut.path,
+      defaultValue: shortcut.label,
+    }).then((label) => {
+      if (label === null) return
+      persist(shortcuts.map((s) => (s.id === shortcut.id ? { ...s, label } : s)))
+    })
   }
 
   const move = (index: number, delta: number): void => {
@@ -81,6 +91,7 @@ export function ShortcutList({
 
   return (
     <>
+      {promptDialog}
       <h4 className="side-head">
         Kısayollar
         <button type="button" onClick={add} title={`Bu klasörü ekle: ${currentPath}`}>+</button>

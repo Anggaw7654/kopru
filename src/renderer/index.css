@@ -520,3 +520,13 @@ th.sortable:hover { color: var(--accent); }
 .ctx__warn { margin: 5px 0 0; font-size: 10px; color: var(--warn); }
 .ctx__preview { margin: 7px 0 0; max-height: 200px; overflow: auto; background: var(--panel); border-radius: 5px; padding: 7px; font-family: SFMono-Regular, Menlo, monospace; font-size: 10.5px; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
 .ctx__question { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; color: var(--text); font-family: inherit; font-size: 11.5px; resize: vertical; }
+
+/* --- in-app prompt (Electron has no window.prompt) --- */
+.prompt { width: 400px; display: flex; flex-direction: column; gap: 10px; }
+.prompt h3 { margin: 0; }
+.prompt__detail { margin: 0; font-size: 11px; color: var(--muted); word-break: break-all; }
+.prompt input {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
+  padding: 7px 9px; color: var(--text); font-size: 13px; font-family: inherit;
+}
+.prompt input:focus { outline: none; border-color: var(--accent); }

@@ -4,12 +4,14 @@ import type { Profile } from '@shared/types/profile.js'
 import { useFileStore } from '../../stores/files.js'
 import { useTransferStore } from '../../stores/transfers.js'
 import { useTerminalStore } from '../../stores/terminal.js'
+import { useProfileStore } from '../../stores/profiles.js'
 import { Breadcrumb } from './Breadcrumb.js'
 import { QuickLook } from './QuickLook.js'
 import { PermissionsDialog } from './PermissionsDialog.js'
 import { MonacoEditor } from './MonacoEditor.js'
 import { TransferQueue } from './TransferQueue.js'
 import { ShortcutList } from './ShortcutList.js'
+import { usePrompt } from '../../components/PromptDialog.js'
 import { useContextStore } from '../../stores/context.js'
 import { formatDateTime, formatMode, formatSize } from './format.js'
 
@@ -37,6 +39,7 @@ export function FileBrowser({ profile }: Props): React.JSX.Element {
   const setTransfersOpen = useTransferStore((s) => s.setOpen)
   const addTerminalTab = useTerminalStore((s) => s.add)
   const addContext = useContextStore((s) => s.add)
+  const [ask, promptDialog] = usePrompt()
 
   const [menu, setMenu] = useState<MenuState | null>(null)
   const [quickLook, setQuickLook] = useState<DirEntry | null>(null)
@@ -135,12 +138,42 @@ export function FileBrowser({ profile }: Props): React.JSX.Element {
       window.kopru.invoke('transfer:download', { profileId, remotePaths: [entry.path] }).catch(fail)
     },
     rename: (entry: DirEntry) => {
-      const next = window.prompt('Yeni ad:', entry.name)
-      if (next === null || next === entry.name || next.trim() === '') return
-      window.kopru
-        .invoke('fs:rename', { profileId, from: entry.path, to: `${parentOf(entry.path)}/${next.trim()}`.replace('//', '/') })
-        .then(refresh)
-        .catch(fail)
+      void ask({ title: 'Yeni ad', detail: entry.path, defaultValue: entry.name }).then((next) => {
+        if (next === null || next === entry.name) return
+        window.kopru
+          .invoke('fs:rename', {
+            profileId,
+            from: entry.path,
+            to: `${parentOf(entry.path)}/${next}`.replace('//', '/'),
+          })
+          .then(refresh)
+          .catch(fail)
+      })
+    },
+
+    addShortcut: (entry: DirEntry) => {
+      // Shortcuts point at folders; for a file, bookmark the folder holding it.
+      const target = entry.kind === 'directory' ? entry.path : parentOf(entry.path)
+      const existing = profile.shortcuts
+      if (existing.some((shortcut) => shortcut.path === target)) {
+        window.alert('Bu klasör zaten kısayollarda.')
+        return
+      }
+      void ask({
+        title: 'Kısayol adı',
+        detail: target,
+        defaultValue: target.split('/').filter(Boolean).at(-1) ?? target,
+        confirmLabel: 'Ekle',
+      }).then((label) => {
+        if (label === null) return
+        window.kopru
+          .invoke('fs:set-shortcuts', {
+            profileId,
+            shortcuts: [...existing, { id: crypto.randomUUID(), label, path: target }],
+          })
+          .then(() => useProfileStore.getState().load())
+          .catch(fail)
+      })
     },
     remove: (entry: DirEntry) => {
       const targets = selected.length > 1 && selected.includes(entry.path) ? selected : [entry.path]
@@ -150,13 +183,22 @@ export function FileBrowser({ profile }: Props): React.JSX.Element {
     },
     compress: (entry: DirEntry) => {
       const targets = selected.length > 1 && selected.includes(entry.path) ? selected : [entry.path]
-      const suggested = `${entry.name}.tar.gz`
-      const name = window.prompt('Arşiv adı:', suggested)
-      if (name === null || name.trim() === '') return
-      window.kopru
-        .invoke('fs:compress', { profileId, sources: targets, archivePath: `${path}/${name.trim()}`.replace('//', '/') })
-        .then(refresh)
-        .catch(fail)
+      void ask({
+        title: 'Arşiv adı',
+        detail: path,
+        defaultValue: `${entry.name}.tar.gz`,
+        confirmLabel: 'Sıkıştır',
+      }).then((name) => {
+        if (name === null) return
+        window.kopru
+          .invoke('fs:compress', {
+            profileId,
+            sources: targets,
+            archivePath: `${path}/${name}`.replace('//', '/'),
+          })
+          .then(refresh)
+          .catch(fail)
+      })
     },
     extract: (entry: DirEntry) => {
       window.kopru
@@ -210,6 +252,7 @@ export function FileBrowser({ profile }: Props): React.JSX.Element {
 
   return (
     <div className="files">
+      {promptDialog}
       <div className="files__toolbar">
         <button type="button" onClick={() => { void store.navigate(profileId, parentOf(path)) }}>↑</button>
         <Breadcrumb path={path} onNavigate={(p) => { void store.navigate(profileId, p) }} />
@@ -220,12 +263,13 @@ export function FileBrowser({ profile }: Props): React.JSX.Element {
         <button
           type="button"
           onClick={() => {
-            const name = window.prompt('Klasör adı:')
-            if (name === null || name.trim() === '') return
-            window.kopru
-              .invoke('fs:mkdir', { profileId, path: `${path}/${name.trim()}`.replace('//', '/') })
-              .then(refresh)
-              .catch(fail)
+            void ask({ title: 'Klasör adı', detail: path, confirmLabel: 'Oluştur' }).then((name) => {
+              if (name === null) return
+              window.kopru
+                .invoke('fs:mkdir', { profileId, path: `${path}/${name}`.replace('//', '/') })
+                .then(refresh)
+                .catch(fail)
+            })
           }}
         >
           + Klasör
@@ -304,6 +348,9 @@ export function FileBrowser({ profile }: Props): React.JSX.Element {
         <div className="context-menu" style={{ left: menu.x, top: menu.y }} onClick={(e) => { e.stopPropagation() }}>
           <button type="button" onClick={() => { activate(menu.entry); setMenu(null) }}>Aç</button>
           <button type="button" onClick={() => { setQuickLook(menu.entry); setMenu(null) }}>Önizle</button>
+          <button type="button" onClick={() => { action.addShortcut(menu.entry); setMenu(null) }}>
+            Kısayol olarak ekle
+          </button>
           <button type="button" onClick={() => { action.download(menu.entry); setMenu(null) }}>Mac’e indir</button>
           <hr />
           <button type="button" onClick={() => { action.rename(menu.entry); setMenu(null) }}>Yeniden adlandır</button>

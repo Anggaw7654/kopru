@@ -4,7 +4,11 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import prettier from 'eslint-config-prettier'
 
 export default tseslint.config(
-  { ignores: ['out/**', 'dist/**', 'node_modules/**'] },
+  // This file itself is excluded: it belongs to no tsconfig, so type-aware
+  // rules can only report that they cannot type it. It is build config, not
+  // shipped code.
+  { ignores: ['out/**', 'dist/**', 'node_modules/**', 'eslint.config.js'] },
+
   js.configs.recommended,
   ...tseslint.configs.strictTypeChecked,
   {

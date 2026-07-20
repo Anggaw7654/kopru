@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "dist": "electron-vite build && electron-builder --mac"
+    "dist": "electron-vite build && electron-builder --mac",
+    "app": "electron-vite build && electron-builder --mac dir --arm64"
   },
   "keywords": [],
   "author": "Kaya",
@@ -55,7 +56,7 @@
   },
   "build": {
     "appId": "com.kaya.kopru",
-    "productName": "K\u00f6pr\u00fc",
+    "productName": "Kopru",
     "directories": {
       "output": "release",
       "buildResources": "build"
@@ -76,10 +77,12 @@
       ],
       "category": "public.app-category.developer-tools",
       "darkModeSupport": true,
-      "hardenedRuntime": true,
+      "hardenedRuntime": false,
       "gatekeeperAssess": false,
-      "entitlements": "build/entitlements.mac.plist",
-      "entitlementsInherit": "build/entitlements.mac.plist"
+      "identity": "-",
+      "extendInfo": {
+        "CFBundleDisplayName": "K\u00f6pr\u00fc"
+      }
     },
     "dmg": {
       "contents": [
@@ -94,6 +97,7 @@
           "path": "/Applications"
         }
       ]
-    }
+    },
+    "asar": true
   }
 }

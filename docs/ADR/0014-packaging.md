@@ -1,23 +1,48 @@
-# ADR 0014 — Packaging and what is deliberately unsigned
+# ADR 0014 — Packaging: ASCII bundle name, ad-hoc signature
 
 **Status:** accepted
 
-`npm run dist` produces a universal-ish dmg (arm64 + x64) via electron-builder.
+## The bundle name must be ASCII
 
-**Hardened runtime is on, notarisation is not configured.** Notarising needs an
-Apple Developer ID ($99/yr) and an app-specific password in CI. Without it the
-dmg installs and runs on the machine that built it, but Gatekeeper will warn on
-any other Mac. That is the honest state: the build is not "broken", it is
-unsigned, and the difference matters to whoever is handed the file.
+`productName` is `Kopru`, not `Köprü`. A packaged build named `Köprü.app` dies
+on the browser main thread with SIGTRAP before a single line of JS runs — no
+stderr, no exception, just "quit unexpectedly". The same code runs fine
+unpackaged, and the same binary runs fine under `ELECTRON_RUN_AS_NODE`, which is
+what narrows it to bundle-name handling.
 
-To sign later, set `CSC_LINK` / `CSC_KEY_PASSWORD` and add `notarize` to the mac
-block — no code changes.
+The user-visible name comes from `CFBundleDisplayName` in `extendInfo`, so
+Finder and the menu bar still say **Köprü**.
 
-**Entitlements** are the minimum the app actually uses: JIT (V8 under the
-hardened runtime), outbound network (SSH), and user-selected file read/write
-(the private key, and upload/download folders). Notably absent is any inbound
-network entitlement, because nothing listens — the PostgreSQL tunnel is a
-channel handed to the pg client rather than a bound port (ADR 0012).
+Do **not** also override `CFBundleName`: Electron locates its helper processes
+by it, and changing it aborts with `Unable to find helper app`.
 
-No native modules are bundled (ADR 0005), so there is nothing to rebuild against
-Electron's ABI and no `asarUnpack` is required.
+## Signing
+
+`mac.identity: "-"` — ad-hoc, done by electron-builder. On Apple Silicon every
+binary needs a valid signature, and injecting our files into the bundle
+invalidates the one Electron ships with. electron-builder signs the framework,
+the helper apps and the outer bundle in the correct inside-out order.
+
+Signing afterwards with `codesign --deep` does **not** work: it produces
+mismatched Team IDs between the outer executable and the framework, and dyld
+refuses to load it. `--deep` is deprecated by Apple for this reason.
+
+`hardenedRuntime` is off. It only buys anything alongside notarisation, which
+needs a paid Developer ID; with an ad-hoc signature it just adds a way to fail
+(entitlements get dropped, JIT is blocked, V8 traps).
+
+## What this build is not
+
+Not notarised. It runs on the machine that built it. Copied to another Mac,
+Gatekeeper blocks it until right-click → Open. To sign properly later, set
+`CSC_LINK` / `CSC_KEY_PASSWORD`, restore `hardenedRuntime: true` with the
+entitlements file, and add notarisation — no code changes.
+
+`build/entitlements.mac.plist` is kept for that day.
+
+## Data directory
+
+`userData` is pinned to `<appData>/kopru` in `src/main/index.ts`, before
+`app.whenReady()`. Electron otherwise derives it from the app name, which
+differs between the dev run and the packaged build — installing the app would
+appear to erase every profile, pinned host key and shortcut.

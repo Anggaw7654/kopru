@@ -12,6 +12,22 @@ import * as profiles from './ssh/profiles.js'
 
 const isDev = !app.isPackaged
 
+// Both of these must run before `app.whenReady()`: Chromium resolves userData
+// during startup, long before our ready handler, so setting them there is too
+// late and silently inconsistent.
+app.setName('Köprü')
+
+/**
+ * Pin the data directory instead of letting it follow the app name.
+ *
+ * Electron derives userData from the app name, which differs between the dev
+ * run (package `name`: "kopru") and the packaged build (`productName`:
+ * "Köprü"). Left alone, installing the app makes every saved profile, pinned
+ * host key and shortcut vanish — the data is still on disk, just in a folder
+ * nothing reads any more.
+ */
+app.setPath('userData', join(app.getPath('appData'), 'kopru'))
+
 function createWindow(): BrowserWindow {
   const window = new BrowserWindow({
     width: 1280,
@@ -73,7 +89,6 @@ function applyContentSecurityPolicy(): void {
 }
 
 void app.whenReady().then(async () => {
-  app.setName('Köprü')
   applyContentSecurityPolicy()
   registerIpcHandlers()
 

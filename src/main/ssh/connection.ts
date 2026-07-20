@@ -267,6 +267,33 @@ export class SshConnection extends EventEmitter {
     })
   }
 
+  /**
+   * A direct-tcpip channel to a port on the server's own network namespace.
+   *
+   * This is the PostgreSQL tunnel: the channel is handed straight to the pg
+   * client as its transport, so nothing is ever bound on the Mac. There is no
+   * local port to scan, and no other process on this machine can reach the
+   * database (ADR 0012).
+   */
+  forwardOut(destHost: string, destPort: number): Promise<ClientChannel> {
+    const client = this.requireClient()
+    return new Promise((resolve, reject) => {
+      // Source address is informational; servers log it but do not route on it.
+      client.forwardOut('127.0.0.1', 0, destHost, destPort, (err, channel) => {
+        if (err) {
+          reject(
+            new Error(
+              `Tünel açılamadı (${destHost}:${String(destPort)}): ${err.message}. ` +
+                'Sunucuda bu porta erişim var mı ve SSH yapılandırmasında AllowTcpForwarding açık mı?',
+            ),
+          )
+        } else {
+          resolve(channel)
+        }
+      })
+    })
+  }
+
   sftp(): Promise<SFTPWrapper> {
     const client = this.requireClient()
     return new Promise((resolve, reject) => {

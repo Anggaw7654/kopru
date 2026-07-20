@@ -1,5 +1,6 @@
 /** How we authenticate to a server. */
 import type { MonitorConfig } from './metrics.js'
+import type { PostgresConfig } from './postgres.js'
 
 export type AuthType = 'key' | 'password' | 'agent'
 
@@ -24,6 +25,7 @@ export interface Profile {
   hasPassword: boolean
   hasPassphrase: boolean
   monitor: MonitorConfig
+  postgres: PostgresConfig
 }
 
 /** What the renderer sends when creating or updating a profile. */
@@ -39,6 +41,10 @@ export interface ProfileInput {
   autoConnect: boolean
   /** Absent on save means "leave the stored monitor settings alone". */
   monitor?: MonitorConfig
+  /** Same rule as monitor: absent means "do not touch". */
+  postgres?: PostgresConfig
+  /** Database password: undefined keeps, null clears, string replaces. */
+  postgresPassword?: string | null
   /**
    * Plaintext secrets, present only in this one direction and only when the user
    * just typed them. `undefined` means "leave whatever is stored alone";

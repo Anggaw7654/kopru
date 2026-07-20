@@ -7,6 +7,7 @@ import { TerminalTabs } from './features/terminal/TerminalTabs.js'
 import { FileBrowser } from './features/files/FileBrowser.js'
 import { MonitorPanel } from './features/monitor/MonitorPanel.js'
 import { DockerPanel } from './features/docker/DockerPanel.js'
+import { PostgresPanel } from './features/postgres/PostgresPanel.js'
 import { useFileStore } from './stores/files.js'
 import { useMonitorStore } from './stores/monitor.js'
 import { useProfileStore as useProfiles } from './stores/profiles.js'
@@ -22,7 +23,7 @@ export function App(): React.JSX.Element {
   const hydrateTransfers = useTransferStore((s) => s.hydrate)
   const applySample = useMonitorStore((s) => s.apply)
   const profiles = useProfiles((s) => s.profiles)
-  const [view, setView] = useState<'files' | 'terminal' | 'monitor' | 'docker'>('files')
+  const [view, setView] = useState<'files' | 'terminal' | 'monitor' | 'docker' | 'pg'>('files')
 
   useEffect(() => {
     void loadProfiles()
@@ -121,6 +122,13 @@ export function App(): React.JSX.Element {
               </button>
               <button
                 type="button"
+                className={view === 'pg' ? 'view-switch--active' : ''}
+                onClick={() => { setView('pg') }}
+              >
+                PostgreSQL
+              </button>
+              <button
+                type="button"
                 className={view === 'terminal' ? 'view-switch--active' : ''}
                 onClick={() => { setView('terminal') }}
               >
@@ -139,6 +147,11 @@ export function App(): React.JSX.Element {
                 poll and any live log follow must stop when the user leaves. */}
             <div style={{ display: view === 'docker' ? 'contents' : 'none' }}>
               {view === 'docker' && <DockerPanel profileId={activeProfileId} />}
+            </div>
+            {/* Unmounted when hidden: the health tab polls every 5 s and the
+                tunnelled connections should not stay warm for a hidden panel. */}
+            <div style={{ display: view === 'pg' ? 'contents' : 'none' }}>
+              {view === 'pg' && activeProfile && <PostgresPanel profile={activeProfile} />}
             </div>
             <div style={{ display: view === 'terminal' ? 'contents' : 'none' }}>
               <TerminalTabs />

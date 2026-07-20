@@ -33,6 +33,17 @@ import type {
   PruneTarget,
 } from './types/docker.js'
 import type {
+  BackupRequest,
+  DangerAssessment,
+  DatabaseInfo,
+  HealthReport,
+  QueryRequest,
+  QueryResult,
+  SchemaInfo,
+  TableDetail,
+  TableRef,
+} from './types/postgres.js'
+import type {
   MetricSnapshot,
   MonitorHistory,
   RestartServiceRequest,
@@ -115,6 +126,31 @@ export interface IpcInvokeMap {
   'docker:compose-apply': { req: { profileId: string; project: string }; res: void }
   'docker:prune-preview': { req: { profileId: string; target: PruneTarget }; res: PrunePreview }
   'docker:prune': { req: { profileId: string; target: PruneTarget }; res: PruneResult }
+
+  'pg:databases': { req: { profileId: string }; res: DatabaseInfo[] }
+  'pg:schemas': { req: { profileId: string; database: string }; res: SchemaInfo[] }
+  'pg:table-detail': {
+    req: { profileId: string; database: string; table: TableRef }
+    res: TableDetail
+  }
+  'pg:browse': {
+    req: {
+      profileId: string; database: string; table: TableRef
+      orderBy: string | null; descending: boolean; limit: number; offset: number
+    }
+    res: QueryResult
+  }
+  'pg:query': { req: QueryRequest; res: QueryResult }
+  'pg:explain': { req: QueryRequest; res: { plan: string } }
+  /** Asked before running anything in write mode; drives the red dialog. */
+  'pg:assess': { req: QueryRequest; res: DangerAssessment }
+  'pg:health': { req: { profileId: string; database: string }; res: HealthReport }
+  'pg:cancel-query': {
+    req: { profileId: string; database: string; pid: number; terminate: boolean }
+    res: { ok: boolean }
+  }
+  /** Runs pg_dump on the server, then queues the download. */
+  'pg:backup': { req: BackupRequest; res: { remotePath: string } | null }
 }
 
 /**

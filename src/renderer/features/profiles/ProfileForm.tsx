@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import type { AuthType, Profile, ProfileInput } from '@shared/types/profile.js'
+import type { PostgresConfig } from '@shared/types/postgres.js'
+import { DEFAULT_POSTGRES } from '@shared/types/postgres.js'
 import { useProfileStore } from '../../stores/profiles.js'
 
 interface Props {
@@ -18,6 +20,8 @@ export function ProfileForm({ editing, onDone }: Props): React.JSX.Element {
   const [password, setPassword] = useState('')
   const [passphrase, setPassphrase] = useState('')
   const [autoConnect, setAutoConnect] = useState(editing?.autoConnect ?? false)
+  const [pg, setPg] = useState<PostgresConfig>(editing?.postgres ?? DEFAULT_POSTGRES)
+  const [pgPassword, setPgPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -33,6 +37,7 @@ export function ProfileForm({ editing, onDone }: Props): React.JSX.Element {
         username: username.trim(),
         authType,
         autoConnect,
+        postgres: pg,
       }
       if (editing) input.id = editing.id
       if (authType === 'key' && privateKeyPath.trim()) input.privateKeyPath = privateKeyPath.trim()
@@ -40,6 +45,7 @@ export function ProfileForm({ editing, onDone }: Props): React.JSX.Element {
       // switching auth type, not by blanking a field they never opened.
       if (authType === 'password' && password) input.password = password
       if (authType === 'key' && passphrase) input.passphrase = passphrase
+      if (pg.enabled && pgPassword) input.postgresPassword = pgPassword
 
       await save(input)
       onDone()
@@ -166,6 +172,56 @@ export function ProfileForm({ editing, onDone }: Props): React.JSX.Element {
         />
         Uygulama açılınca otomatik bağlan
       </label>
+
+      <h4>PostgreSQL</h4>
+      <label className="checkbox">
+        <input
+          type="checkbox"
+          checked={pg.enabled}
+          onChange={(e) => { setPg({ ...pg, enabled: e.target.checked }) }}
+        />
+        Bu sunucuda PostgreSQL paneli açık
+      </label>
+
+      {pg.enabled && (
+        <>
+          <p className="hint">
+            Adres sunucunun kendi bakışıyla girilir. Tünel SSH üzerinden kurulur;
+            Mac’inizde hiçbir port açılmaz.
+          </p>
+          <div className="row">
+            <label className="grow">
+              Adres
+              <input value={pg.host} onChange={(e) => { setPg({ ...pg, host: e.target.value }) }} />
+            </label>
+            <label className="port">
+              Port
+              <input value={String(pg.port)} inputMode="numeric"
+                onChange={(e) => { setPg({ ...pg, port: Number(e.target.value) || 5432 }) }} />
+            </label>
+          </div>
+          <label>
+            Veritabanı
+            <input value={pg.database} onChange={(e) => { setPg({ ...pg, database: e.target.value }) }} />
+          </label>
+          <label>
+            Kullanıcı
+            <input value={pg.user} onChange={(e) => { setPg({ ...pg, user: e.target.value }) }} />
+          </label>
+          <label>
+            Parola {editing?.postgres.hasPassword === true && <em>(kayıtlı — boş bırakırsanız korunur)</em>}
+            <input type="password" value={pgPassword}
+              onChange={(e) => { setPgPassword(e.target.value) }} />
+          </label>
+          <label>
+            Sorgu zaman aşımı (saniye)
+            <input type="number" min={5} value={String(pg.statementTimeoutMs / 1000)}
+              onChange={(e) => {
+                setPg({ ...pg, statementTimeoutMs: Math.max(5, Number(e.target.value)) * 1000 })
+              }} />
+          </label>
+        </>
+      )}
 
       {error !== null && <p className="error">{error}</p>}
 

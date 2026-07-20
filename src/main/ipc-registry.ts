@@ -20,6 +20,11 @@ import * as dockerInspect from './modules/docker/inspect.js'
 import * as dockerControl from './modules/docker/control.js'
 import * as dockerLogs from './modules/docker/logs.js'
 import * as dockerCompose from './modules/docker/compose.js'
+import * as pgPool from './modules/postgres/pool.js'
+import * as pgSchema from './modules/postgres/schema.js'
+import * as pgQuery from './modules/postgres/query.js'
+import * as pgHealth from './modules/postgres/health.js'
+import * as pgBackup from './modules/postgres/backup.js'
 import { dialog, BrowserWindow } from 'electron'
 
 /**
@@ -68,8 +73,9 @@ export function registerIpcHandlers(): void {
   handle('connection:connect', async ({ profileId }) => {
     await manager.connect(profileId)
   })
-  handle('connection:disconnect', ({ profileId }) => {
+  handle('connection:disconnect', async ({ profileId }) => {
     monitor.stop(profileId)
+    await pgPool.closeFor(profileId)
     dockerLogs.stopAllFor(profileId)
     dockerDetect.forget(profileId)
     terminals.closeAllFor(profileId)
@@ -158,6 +164,62 @@ export function registerIpcHandlers(): void {
     dockerControl.prunePreview(profileId, target),
   )
   handle('docker:prune', ({ profileId, target }) => dockerControl.prune(profileId, target))
+
+  const pgConfig = (profileId: string) => {
+    const profile = profiles.list().find((p) => p.id === profileId)
+    if (!profile) throw new Error('Profil bulunamadı.')
+    if (!profile.postgres.enabled) {
+      throw new Error('Bu profilde PostgreSQL kapalı. Ayarlar’dan açın.')
+    }
+    return profile.postgres
+  }
+
+  handle('pg:databases', ({ profileId }) => pgSchema.databases(profileId, pgConfig(profileId)))
+  handle('pg:schemas', ({ profileId, database }) =>
+    pgSchema.schemas(profileId, database, pgConfig(profileId)),
+  )
+  handle('pg:table-detail', ({ profileId, database, table }) =>
+    pgSchema.tableDetail(profileId, database, pgConfig(profileId), table),
+  )
+  handle('pg:browse', ({ profileId, database, table, orderBy, descending, limit, offset }) => {
+    const sql = pgSchema.browseSql(table, orderBy, descending)
+    return pgQuery.execute(
+      {
+        profileId,
+        database,
+        // Browsing is always read-only regardless of the panel's mode: the grid
+        // has no cell editing by design, so it never needs write access.
+        readOnly: true,
+        sql: `${sql} limit ${String(limit)} offset ${String(offset)}`,
+      },
+      pgConfig(profileId),
+    )
+  })
+  handle('pg:query', (request) => pgQuery.execute(request, pgConfig(request.profileId)))
+  handle('pg:explain', async (request) => ({
+    plan: await pgQuery.explain(request, pgConfig(request.profileId)),
+  }))
+  handle('pg:assess', (request) => pgQuery.assessWithEstimate(request, pgConfig(request.profileId)))
+  handle('pg:health', ({ profileId, database }) =>
+    pgHealth.report(profileId, database, pgConfig(profileId)),
+  )
+  handle('pg:cancel-query', async ({ profileId, database, pid, terminate }) => ({
+    ok: await pgHealth.cancelQuery(profileId, database, pgConfig(profileId), pid, terminate),
+  }))
+  handle('pg:backup', async (request) => {
+    const window = BrowserWindow.getFocusedWindow()
+    const options = {
+      title: 'Yedeğin indirileceği klasörü seçin',
+      properties: ['openDirectory', 'createDirectory'] as const,
+      buttonLabel: 'Buraya indir',
+    }
+    const result = await (window
+      ? dialog.showOpenDialog(window, { ...options, properties: [...options.properties] })
+      : dialog.showOpenDialog({ ...options, properties: [...options.properties] }))
+    const target = result.filePaths[0]
+    if (result.canceled || target === undefined) return null
+    return pgBackup.backup(request, pgConfig(request.profileId), target)
+  })
 
   receive('terminal:write', ({ sessionId, data }) => {
     terminals.write(sessionId, data)

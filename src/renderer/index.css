@@ -428,3 +428,45 @@ button.danger:hover {
 .logs__body { flex: 1; overflow: auto; padding: 8px 12px; }
 .logs__body pre { margin: 0; font-family: SFMono-Regular, Menlo, monospace; font-size: 11.5px; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
 .logs__meta { padding: 5px 12px; border-top: 1px solid var(--border); color: var(--muted); font-size: 10px; }
+
+/* --- postgres --- */
+.pg { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.pg__bar { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-bottom: 1px solid var(--border); }
+.pg__bar select { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; color: var(--text); font-family: inherit; font-size: 11px; }
+.pg__body { flex: 1; display: flex; min-height: 0; }
+.pg__tree { width: 210px; flex-shrink: 0; border-right: 1px solid var(--border); overflow-y: auto; padding: 6px; }
+.pg__detail { flex: 1; overflow-y: auto; padding: 10px 14px 20px; min-width: 0; }
+.pg__detail h4 { font-size: 11px; text-transform: uppercase; color: var(--muted); letter-spacing: 0.5px; margin: 14px 0 6px; }
+.pg__detail h4:first-child { margin-top: 0; }
+.pg__browse { align-items: center; margin: 12px 0 8px; }
+
+.tree { display: flex; flex-direction: column; gap: 1px; }
+.tree__schema { display: flex; justify-content: space-between; border: none; background: none; text-align: left; padding: 4px 6px; border-radius: 4px; font-size: 11px; color: var(--muted); }
+.tree__schema em { font-style: normal; }
+.tree__table { display: block; width: 100%; text-align: left; border: none; background: none; padding: 3px 6px 3px 18px; border-radius: 4px; font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tree__table:hover { background: var(--panel); }
+.tree__table--active { background: var(--accent); color: var(--bg); }
+
+.grid { display: flex; flex-direction: column; min-height: 0; }
+.grid__filter { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; color: var(--text); font-family: inherit; font-size: 11px; margin-bottom: 6px; max-width: 280px; }
+.grid__scroll { overflow: auto; max-height: 420px; border: 1px solid var(--border); border-radius: 6px; }
+.grid__meta { padding: 5px 2px; color: var(--muted); font-size: 10px; }
+.grid__meta em { font-style: normal; }
+.null-cell { color: var(--muted); font-style: italic; }
+th.sortable { cursor: pointer; user-select: none; }
+th.sortable:hover { color: var(--accent); }
+
+.sql { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.sql__bar { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-bottom: 1px solid var(--border); }
+.sql__editor { height: 190px; flex-shrink: 0; border-bottom: 1px solid var(--border); }
+.sql__result { flex: 1; overflow: auto; padding: 10px 12px; min-height: 0; }
+.sql__history { padding: 6px 10px; border-bottom: 1px solid var(--border); font-size: 11px; color: var(--muted); max-height: 150px; overflow-y: auto; }
+.sql__history summary { cursor: pointer; }
+.write-toggle { margin-left: auto; flex-direction: row; align-items: center; gap: 6px; font-size: 11px; padding: 3px 9px; border-radius: 6px; border: 1px solid var(--border); }
+.write-toggle--on { border-color: var(--danger); color: var(--danger); font-weight: 600; }
+.plan { font-family: SFMono-Regular, Menlo, monospace; font-size: 11px; line-height: 1.5; white-space: pre; overflow-x: auto; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 10px; }
+.note { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 10px; font-size: 11px; line-height: 1.6; white-space: pre-wrap; color: var(--muted); }
+
+.danger-list { margin: 0 0 10px; padding-left: 18px; font-size: 12px; line-height: 1.6; }
+.danger-sql { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 9px; font-size: 11px; max-height: 140px; overflow: auto; white-space: pre-wrap; margin: 0 0 10px; }
+.health { flex: 1; overflow-y: auto; padding: 12px 14px 20px; }

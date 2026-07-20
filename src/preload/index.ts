@@ -61,6 +61,16 @@ const INVOKE_CHANNELS: readonly IpcInvokeChannel[] = [
   'docker:compose-apply',
   'docker:prune-preview',
   'docker:prune',
+  'pg:databases',
+  'pg:schemas',
+  'pg:table-detail',
+  'pg:browse',
+  'pg:query',
+  'pg:explain',
+  'pg:assess',
+  'pg:health',
+  'pg:cancel-query',
+  'pg:backup',
 ]
 
 const SEND_CHANNELS: readonly IpcSendChannel[] = ['terminal:write', 'terminal:resize']

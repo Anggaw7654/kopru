@@ -7,6 +7,7 @@ import * as sftpPool from './modules/files/sftp.js'
 import * as monitor from './modules/monitor/collector.js'
 import * as dockerLogs from './modules/docker/logs.js'
 import * as dockerDetect from './modules/docker/detect.js'
+import * as pgPool from './modules/postgres/pool.js'
 import * as profiles from './ssh/profiles.js'
 
 const isDev = !app.isPackaged
@@ -96,6 +97,9 @@ void app.whenReady().then(async () => {
     // reconnect does not accumulate orphans.
     dockerLogs.stopAllFor(profileId)
     dockerDetect.forget(profileId)
+    // The tunnelled pg channels died with the connection; drop the clients so
+    // the next query opens a fresh tunnel instead of writing into a dead socket.
+    void pgPool.closeFor(profileId)
   })
 
   createWindow()

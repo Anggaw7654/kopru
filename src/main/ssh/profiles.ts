@@ -5,6 +5,8 @@ import { app, safeStorage } from 'electron'
 import type { Profile, ProfileInput } from '../../shared/types/profile.js'
 import type { MonitorConfig } from '../../shared/types/metrics.js'
 import { DEFAULT_MONITOR } from '../../shared/types/metrics.js'
+import type { PostgresConfig } from '../../shared/types/postgres.js'
+import { DEFAULT_POSTGRES } from '../../shared/types/postgres.js'
 
 /**
  * On-disk shape. Secrets are stored as base64 of safeStorage ciphertext, which
@@ -24,6 +26,9 @@ interface StoredProfile {
   encryptedPassphrase?: string
   /** Absent on profiles written before the monitor module existed. */
   monitor?: MonitorConfig
+  postgres?: PostgresConfig
+  /** safeStorage ciphertext, base64. Never leaves this process in the clear. */
+  encryptedPostgresPassword?: string
 }
 
 interface ProfileFile {
@@ -94,6 +99,13 @@ function withMonitorDefaults(monitor: MonitorConfig | undefined): MonitorConfig 
   }
 }
 
+function withPostgresDefaults(
+  postgres: PostgresConfig | undefined,
+  hasPassword: boolean,
+): PostgresConfig {
+  return { ...DEFAULT_POSTGRES, ...postgres, hasPassword }
+}
+
 function toPublic(stored: StoredProfile): Profile {
   const profile: Profile = {
     id: stored.id,
@@ -106,6 +118,10 @@ function toPublic(stored: StoredProfile): Profile {
     hasPassword: stored.encryptedPassword !== undefined,
     hasPassphrase: stored.encryptedPassphrase !== undefined,
     monitor: withMonitorDefaults(stored.monitor),
+    postgres: withPostgresDefaults(
+      stored.postgres,
+      stored.encryptedPostgresPassword !== undefined,
+    ),
   }
   if (stored.privateKeyPath !== undefined) profile.privateKeyPath = stored.privateKeyPath
   return profile
@@ -129,6 +145,7 @@ export function save(input: ProfileInput): Profile {
     authType: input.authType,
     autoConnect: input.autoConnect,
     monitor: withMonitorDefaults(input.monitor ?? previous?.monitor),
+    postgres: withPostgresDefaults(input.postgres ?? previous?.postgres, false),
   }
   if (input.privateKeyPath !== undefined) next.privateKeyPath = input.privateKeyPath
 
@@ -144,8 +161,10 @@ export function save(input: ProfileInput): Profile {
 
   const password = carry(input.password, previous?.encryptedPassword)
   const passphrase = carry(input.passphrase, previous?.encryptedPassphrase)
+  const pgPassword = carry(input.postgresPassword, previous?.encryptedPostgresPassword)
   if (password !== undefined) next.encryptedPassword = password
   if (passphrase !== undefined) next.encryptedPassphrase = passphrase
+  if (pgPassword !== undefined) next.encryptedPostgresPassword = pgPassword
 
   if (index >= 0) file.profiles[index] = next
   else file.profiles.push(next)
@@ -162,6 +181,16 @@ export function remove(id: string): void {
 
 export function findStored(id: string): StoredProfile | undefined {
   return read().profiles.find((p) => p.id === id)
+}
+
+/**
+ * The database password, decrypted. Called only by the pg pool, and — per the
+ * security requirements — this value must never enter Claude context.
+ */
+export function postgresPasswordFor(id: string): string | undefined {
+  const stored = findStored(id)
+  if (!stored?.encryptedPostgresPassword) return undefined
+  return decrypt(stored.encryptedPostgresPassword)
 }
 
 /** Decrypted secrets, for the connect path only. Never returned over IPC. */

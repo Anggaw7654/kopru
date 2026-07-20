@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import type { DirEntry } from '@shared/types/files.js'
 
-const FAVORITES_KEY = 'kopru.favorites'
 const RECENTS_KEY = 'kopru.recents'
 const MAX_RECENTS = 8
 
@@ -24,7 +23,6 @@ interface FileStore {
   error: string | null
   showHidden: boolean
   view: 'list' | 'columns'
-  favorites: string[]
   recents: string[]
 
   navigate: (profileId: string, path: string) => Promise<void>
@@ -32,7 +30,6 @@ interface FileStore {
   select: (paths: string[]) => void
   toggleHidden: (profileId: string) => Promise<void>
   setView: (view: 'list' | 'columns') => void
-  toggleFavorite: (path: string) => void
 }
 
 export const useFileStore = create<FileStore>((set, get) => ({
@@ -43,7 +40,6 @@ export const useFileStore = create<FileStore>((set, get) => ({
   error: null,
   showHidden: false,
   view: 'list',
-  favorites: readList(FAVORITES_KEY),
   recents: readList(RECENTS_KEY),
 
   navigate: async (profileId, path) => {
@@ -80,13 +76,5 @@ export const useFileStore = create<FileStore>((set, get) => ({
 
   setView: (view) => {
     set({ view })
-  },
-
-  toggleFavorite: (path) => {
-    const favorites = get().favorites.includes(path)
-      ? get().favorites.filter((p) => p !== path)
-      : [...get().favorites, path]
-    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites))
-    set({ favorites })
   },
 }))

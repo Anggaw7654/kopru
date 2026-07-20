@@ -102,6 +102,9 @@ export function registerIpcHandlers(): void {
   handle('fs:preview', (request) => previews.preview(request))
   handle('fs:open', (request) => editor.open(request))
   handle('fs:save', (request) => editor.save(request))
+  handle('fs:set-shortcuts', ({ profileId, shortcuts }) =>
+    profiles.setShortcuts(profileId, shortcuts),
+  )
 
   handle('transfer:upload', ({ profileId, localPaths, destinationDir }) => {
     transfers.upload(profileId, localPaths, destinationDir)

@@ -26,7 +26,37 @@ export function App(): React.JSX.Element {
   const [view, setView] = useState<'files' | 'terminal' | 'monitor' | 'docker' | 'pg'>('files')
 
   useEffect(() => {
-    void loadProfiles()
+    void loadProfiles().then(() => {
+      // Bookmarks used to live in localStorage and showed only the last path
+      // segment, so two project roots ending in public_html were
+      // indistinguishable. Carry them into the named per-profile list once.
+      const raw = localStorage.getItem('kopru.favorites')
+      if (raw === null) return
+      localStorage.removeItem('kopru.favorites')
+      let paths: string[] = []
+      try {
+        const parsed: unknown = JSON.parse(raw)
+        if (Array.isArray(parsed)) {
+          paths = parsed.filter((value): value is string => typeof value === 'string')
+        }
+      } catch {
+        return
+      }
+      if (paths.length === 0) return
+
+      const target = useProfiles.getState().profiles.find((p) => p.shortcuts.length === 0)
+      if (!target) return
+      void window.kopru
+        .invoke('fs:set-shortcuts', {
+          profileId: target.id,
+          shortcuts: paths.map((value) => ({
+            id: crypto.randomUUID(),
+            label: value.split('/').filter(Boolean).at(-1) ?? value,
+            path: value,
+          })),
+        })
+        .then(() => loadProfiles())
+    })
     void hydrate()
 
     const offState = window.kopru.on('connection:state', (snapshot) => {
@@ -138,7 +168,7 @@ export function App(): React.JSX.Element {
             {/* Both stay mounted: unmounting the terminal would throw away
                 every tab's scrollback on a view switch. */}
             <div style={{ display: view === 'files' ? 'contents' : 'none' }}>
-              <FileBrowser profileId={activeProfileId} />
+              {activeProfile && <FileBrowser profile={activeProfile} />}
             </div>
             <div style={{ display: view === 'monitor' ? 'contents' : 'none' }}>
               {view === 'monitor' && activeProfile && <MonitorPanel profile={activeProfile} />}

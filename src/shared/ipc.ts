@@ -2,6 +2,7 @@ import type { Profile, ProfileInput } from './types/profile.js'
 import type { ConnectionSnapshot, HostKeyMismatch } from './types/connection.js'
 import type {
   ArchiveRequest,
+  Shortcut,
   ChmodRequest,
   CopyRequest,
   DeleteRequest,
@@ -96,6 +97,7 @@ export interface IpcInvokeMap {
   'fs:preview': { req: PathRequest; res: PreviewResult }
   'fs:open': { req: PathRequest; res: OpenFileResult }
   'fs:save': { req: SaveFileRequest; res: SaveFileResult }
+  'fs:set-shortcuts': { req: { profileId: string; shortcuts: Shortcut[] }; res: Profile }
 
   'transfer:upload': { req: UploadRequest; res: void }
   /** Opens a native folder picker, then queues the downloads. */

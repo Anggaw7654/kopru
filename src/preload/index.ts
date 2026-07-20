@@ -39,6 +39,7 @@ const INVOKE_CHANNELS: readonly IpcInvokeChannel[] = [
   'fs:preview',
   'fs:open',
   'fs:save',
+  'fs:set-shortcuts',
   'transfer:upload',
   'transfer:download',
   'transfer:cancel',

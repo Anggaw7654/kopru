@@ -1,6 +1,7 @@
 /** How we authenticate to a server. */
 import type { MonitorConfig } from './metrics.js'
 import type { PostgresConfig } from './postgres.js'
+import type { Shortcut } from './files.js'
 
 export type AuthType = 'key' | 'password' | 'agent'
 
@@ -26,6 +27,8 @@ export interface Profile {
   hasPassphrase: boolean
   monitor: MonitorConfig
   postgres: PostgresConfig
+  /** Named folder jump targets, per server. */
+  shortcuts: Shortcut[]
 }
 
 /** What the renderer sends when creating or updating a profile. */
@@ -45,6 +48,8 @@ export interface ProfileInput {
   postgres?: PostgresConfig
   /** Database password: undefined keeps, null clears, string replaces. */
   postgresPassword?: string | null
+  /** Absent means "do not touch"; an empty array clears them. */
+  shortcuts?: Shortcut[]
   /**
    * Plaintext secrets, present only in this one direction and only when the user
    * just typed them. `undefined` means "leave whatever is stored alone";

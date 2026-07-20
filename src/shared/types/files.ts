@@ -1,3 +1,14 @@
+/**
+ * A named jump target. The label matters: two project roots usually end in the
+ * same directory name (public_html, dist, src), so a bookmark that shows only
+ * the last path segment is indistinguishable from its neighbour.
+ */
+export interface Shortcut {
+  id: string
+  label: string
+  path: string
+}
+
 export type EntryKind = 'file' | 'directory' | 'symlink' | 'other'
 
 export interface DirEntry {

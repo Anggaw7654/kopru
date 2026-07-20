@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { DirEntry, OpenFileResult } from '@shared/types/files.js'
+import type { Profile } from '@shared/types/profile.js'
 import { useFileStore } from '../../stores/files.js'
 import { useTransferStore } from '../../stores/transfers.js'
 import { useTerminalStore } from '../../stores/terminal.js'
@@ -8,10 +9,11 @@ import { QuickLook } from './QuickLook.js'
 import { PermissionsDialog } from './PermissionsDialog.js'
 import { MonacoEditor } from './MonacoEditor.js'
 import { TransferQueue } from './TransferQueue.js'
+import { ShortcutList } from './ShortcutList.js'
 import { formatDateTime, formatMode, formatSize } from './format.js'
 
 interface Props {
-  profileId: string
+  profile: Profile
 }
 
 interface MenuState {
@@ -27,9 +29,10 @@ function parentOf(path: string): string {
   return index <= 0 ? '/' : trimmed.slice(0, index)
 }
 
-export function FileBrowser({ profileId }: Props): React.JSX.Element {
+export function FileBrowser({ profile }: Props): React.JSX.Element {
+  const profileId = profile.id
   const store = useFileStore()
-  const { path, entries, selected, loading, error, showHidden, favorites, recents } = store
+  const { path, entries, selected, loading, error, showHidden, recents } = store
   const setTransfersOpen = useTransferStore((s) => s.setOpen)
   const addTerminalTab = useTerminalStore((s) => s.add)
 
@@ -197,20 +200,18 @@ export function FileBrowser({ profileId }: Props): React.JSX.Element {
         >
           + Klasör
         </button>
-        <button type="button" onClick={() => { store.toggleFavorite(path) }}>
-          {favorites.includes(path) ? '★' : '☆'}
-        </button>
+
       </div>
 
       <div className="files__body">
         <aside className="files__side">
-          <h4>Favoriler</h4>
-          {favorites.length === 0 && <p className="hint">Yok</p>}
-          {favorites.map((fav) => (
-            <button key={fav} type="button" className="side-link" onClick={() => { void store.navigate(profileId, fav) }}>
-              {fav.split('/').pop() || '/'}
-            </button>
-          ))}
+          <ShortcutList
+            profileId={profileId}
+            shortcuts={profile.shortcuts}
+            currentPath={path}
+            onNavigate={(target) => { void store.navigate(profileId, target) }}
+          />
+
           <h4>Son klasörler</h4>
           {recents.map((recent) => (
             <button key={recent} type="button" className="side-link" onClick={() => { void store.navigate(profileId, recent) }}>

@@ -7,6 +7,7 @@ import type { MonitorConfig } from '../../shared/types/metrics.js'
 import { DEFAULT_MONITOR } from '../../shared/types/metrics.js'
 import type { PostgresConfig } from '../../shared/types/postgres.js'
 import { DEFAULT_POSTGRES } from '../../shared/types/postgres.js'
+import type { Shortcut } from '../../shared/types/files.js'
 
 /**
  * On-disk shape. Secrets are stored as base64 of safeStorage ciphertext, which
@@ -29,6 +30,7 @@ interface StoredProfile {
   postgres?: PostgresConfig
   /** safeStorage ciphertext, base64. Never leaves this process in the clear. */
   encryptedPostgresPassword?: string
+  shortcuts?: Shortcut[]
 }
 
 interface ProfileFile {
@@ -122,6 +124,7 @@ function toPublic(stored: StoredProfile): Profile {
       stored.postgres,
       stored.encryptedPostgresPassword !== undefined,
     ),
+    shortcuts: stored.shortcuts ?? [],
   }
   if (stored.privateKeyPath !== undefined) profile.privateKeyPath = stored.privateKeyPath
   return profile
@@ -146,6 +149,7 @@ export function save(input: ProfileInput): Profile {
     autoConnect: input.autoConnect,
     monitor: withMonitorDefaults(input.monitor ?? previous?.monitor),
     postgres: withPostgresDefaults(input.postgres ?? previous?.postgres, false),
+    shortcuts: input.shortcuts ?? previous?.shortcuts ?? [],
   }
   if (input.privateKeyPath !== undefined) next.privateKeyPath = input.privateKeyPath
 
@@ -171,6 +175,20 @@ export function save(input: ProfileInput): Profile {
 
   write(file)
   return toPublic(next)
+}
+
+/**
+ * Focused writer so the UI can reorder or rename a shortcut without round-
+ * tripping (and risking clobbering) the rest of the profile.
+ */
+export function setShortcuts(id: string, shortcuts: Shortcut[]): Profile {
+  const file = read()
+  const index = file.profiles.findIndex((p) => p.id === id)
+  const stored = file.profiles[index]
+  if (index < 0 || !stored) throw new Error('Profil bulunamadı.')
+  stored.shortcuts = shortcuts
+  write(file)
+  return toPublic(stored)
 }
 
 export function remove(id: string): void {

@@ -19,6 +19,20 @@ import type {
   UploadRequest,
 } from './types/files.js'
 import type {
+  ComposeActionRequest,
+  ComposeProject,
+  Container,
+  ContainerActionRequest,
+  ContainerStats,
+  DiskUsageEntry,
+  DockerAvailability,
+  LogChunk,
+  LogRequest,
+  PrunePreview,
+  PruneResult,
+  PruneTarget,
+} from './types/docker.js'
+import type {
   MetricSnapshot,
   MonitorHistory,
   RestartServiceRequest,
@@ -84,6 +98,23 @@ export interface IpcInvokeMap {
   'monitor:restart-service': { req: RestartServiceRequest; res: void }
   /** Lists systemd units so the settings screen can offer real choices. */
   'monitor:list-units': { req: { profileId: string }; res: { units: string[] } }
+
+  'docker:availability': { req: { profileId: string }; res: DockerAvailability }
+  'docker:containers': { req: { profileId: string }; res: Container[] }
+  /** Expensive (1-2 s); only called while the panel is open. */
+  'docker:stats': { req: { profileId: string }; res: ContainerStats[] }
+  'docker:disk-usage': { req: { profileId: string }; res: DiskUsageEntry[] }
+  'docker:container-action': { req: ContainerActionRequest; res: void }
+  'docker:logs': { req: LogRequest; res: { content: string } }
+  'docker:follow-start': { req: { profileId: string; containerId: string }; res: void }
+  'docker:follow-stop': { req: { profileId: string; containerId: string }; res: void }
+  /** Returns the command to type into a terminal tab; the tab is created separately. */
+  'docker:shell-command': { req: { containerId: string }; res: { command: string } }
+  'docker:compose-list': { req: { profileId: string }; res: ComposeProject[] }
+  'docker:compose-action': { req: ComposeActionRequest; res: void }
+  'docker:compose-apply': { req: { profileId: string; project: string }; res: void }
+  'docker:prune-preview': { req: { profileId: string; target: PruneTarget }; res: PrunePreview }
+  'docker:prune': { req: { profileId: string; target: PruneTarget }; res: PruneResult }
 }
 
 /**
@@ -109,6 +140,7 @@ export interface IpcEventMap {
   /** Something changed this directory behind the UI's back (e.g. an upload finished). */
   'fs:invalidate': { profileId: string; path: string }
   'monitor:sample': MetricSnapshot
+  'docker:log-chunk': LogChunk
 }
 
 export type IpcInvokeChannel = keyof IpcInvokeMap

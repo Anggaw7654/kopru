@@ -133,6 +133,20 @@ export function MonitorPanel({ profile }: Props): React.JSX.Element {
           </div>
         )}
 
+        {latest.docker?.installed === true && (
+          <div className="card">
+            <span className="card__label">Docker</span>
+            <strong className={latest.docker.unhealthy > 0 ? 'hot' : ''}>
+              {String(latest.docker.running)} / {String(latest.docker.total)}
+            </strong>
+            <span className="card__sub">
+              {latest.docker.unhealthy > 0
+                ? `${String(latest.docker.unhealthy)} konteyner sağlıksız`
+                : 'çalışan / toplam'}
+            </span>
+          </div>
+        )}
+
         {latest.postgres && (
           <div className="card">
             <span className="card__label">PostgreSQL</span>

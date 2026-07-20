@@ -16,6 +16,7 @@ export interface RawBlocks {
   SVC?: string[]
   NGINX?: string[]
   PG?: string[]
+  DOCKER?: string[]
 }
 
 export function splitBlocks(output: string): RawBlocks {

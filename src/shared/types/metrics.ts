@@ -82,6 +82,8 @@ export interface PostgresMetric {
   slowQueries: number
 }
 
+import type { DockerSummary } from './docker.js'
+
 export interface MetricSnapshot {
   profileId: string
   /** Unix epoch milliseconds. */
@@ -93,6 +95,7 @@ export interface MetricSnapshot {
   sessions: SessionMetric[]
   nginx?: NginxMetric
   postgres?: PostgresMetric
+  docker?: DockerSummary
   /** Set when a collection round failed; the UI shows "veri bekleniyor". */
   error?: string
 }

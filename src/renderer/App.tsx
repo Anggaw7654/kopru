@@ -6,6 +6,7 @@ import { ProfileList } from './features/profiles/ProfileList.js'
 import { TerminalTabs } from './features/terminal/TerminalTabs.js'
 import { FileBrowser } from './features/files/FileBrowser.js'
 import { MonitorPanel } from './features/monitor/MonitorPanel.js'
+import { DockerPanel } from './features/docker/DockerPanel.js'
 import { useFileStore } from './stores/files.js'
 import { useMonitorStore } from './stores/monitor.js'
 import { useProfileStore as useProfiles } from './stores/profiles.js'
@@ -21,7 +22,7 @@ export function App(): React.JSX.Element {
   const hydrateTransfers = useTransferStore((s) => s.hydrate)
   const applySample = useMonitorStore((s) => s.apply)
   const profiles = useProfiles((s) => s.profiles)
-  const [view, setView] = useState<'files' | 'terminal' | 'monitor'>('files')
+  const [view, setView] = useState<'files' | 'terminal' | 'monitor' | 'docker'>('files')
 
   useEffect(() => {
     void loadProfiles()
@@ -113,6 +114,13 @@ export function App(): React.JSX.Element {
               </button>
               <button
                 type="button"
+                className={view === 'docker' ? 'view-switch--active' : ''}
+                onClick={() => { setView('docker') }}
+              >
+                Docker
+              </button>
+              <button
+                type="button"
                 className={view === 'terminal' ? 'view-switch--active' : ''}
                 onClick={() => { setView('terminal') }}
               >
@@ -126,6 +134,11 @@ export function App(): React.JSX.Element {
             </div>
             <div style={{ display: view === 'monitor' ? 'contents' : 'none' }}>
               {view === 'monitor' && activeProfile && <MonitorPanel profile={activeProfile} />}
+            </div>
+            {/* Unmounted when hidden on purpose: the expensive `docker stats`
+                poll and any live log follow must stop when the user leaves. */}
+            <div style={{ display: view === 'docker' ? 'contents' : 'none' }}>
+              {view === 'docker' && <DockerPanel profileId={activeProfileId} />}
             </div>
             <div style={{ display: view === 'terminal' ? 'contents' : 'none' }}>
               <TerminalTabs />

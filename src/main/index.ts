@@ -5,6 +5,8 @@ import * as manager from './ssh/manager.js'
 import * as terminals from './modules/terminal/registry.js'
 import * as sftpPool from './modules/files/sftp.js'
 import * as monitor from './modules/monitor/collector.js'
+import * as dockerLogs from './modules/docker/logs.js'
+import * as dockerDetect from './modules/docker/detect.js'
 import * as profiles from './ssh/profiles.js'
 
 const isDev = !app.isPackaged
@@ -90,6 +92,10 @@ void app.whenReady().then(async () => {
   manager.onConnectionLost((profileId) => {
     // Without this every tick would throw "not connected" until reconnect.
     monitor.stop(profileId)
+    // Follow channels died with the connection; drop the handles so a
+    // reconnect does not accumulate orphans.
+    dockerLogs.stopAllFor(profileId)
+    dockerDetect.forget(profileId)
   })
 
   createWindow()

@@ -397,3 +397,34 @@ button.danger:hover {
 .modal--wide .row label { flex: 1; }
 .unit-list { max-height: 190px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; padding: 6px; display: flex; flex-direction: column; gap: 2px; }
 .unit-list .checkbox { flex-direction: row; align-items: center; gap: 6px; color: var(--text); font-size: 11px; }
+
+/* --- docker --- */
+.docker { flex: 1; overflow-y: auto; padding: 10px 12px 20px; }
+.docker__tabs { display: flex; gap: 4px; margin-bottom: 10px; }
+.docker__missing { max-width: 520px; margin: 40px auto; text-align: center; }
+.docker__missing h3 { font-size: 14px; margin: 0 0 10px; }
+.docker__missing pre { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 14px; text-align: left; white-space: pre-wrap; font-size: 11.5px; line-height: 1.6; color: var(--muted); }
+
+.ellipsis { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.actions { display: flex; gap: 4px; flex-wrap: wrap; }
+.tag { font-style: normal; background: var(--border); color: var(--muted); border-radius: 4px; padding: 0 5px; margin-left: 6px; font-size: 10px; }
+.dot--disconnected { background: var(--muted); }
+
+.compose { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 5px; }
+.compose__head { display: flex; align-items: baseline; gap: 9px; }
+.prune-actions { margin-top: 14px; }
+
+.modal--danger { border-color: var(--danger); width: 440px; max-height: 78vh; overflow-y: auto; }
+.modal--danger h3 { color: var(--danger); }
+.prune-size { font-size: 12px; margin: 0 0 8px; }
+.prune-size strong { font-size: 15px; }
+.prune-list { max-height: 190px; overflow-y: auto; margin: 4px 0 10px; padding-left: 18px; font-size: 11px; color: var(--muted); }
+
+/* --- container logs --- */
+.logs { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.logs__bar { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-bottom: 1px solid var(--border); font-size: 11px; }
+.logs__bar .checkbox { flex-direction: row; align-items: center; gap: 5px; }
+.logs__search { flex: 1; max-width: 260px; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; color: var(--text); font-family: inherit; font-size: 11px; }
+.logs__body { flex: 1; overflow: auto; padding: 8px 12px; }
+.logs__body pre { margin: 0; font-family: SFMono-Regular, Menlo, monospace; font-size: 11.5px; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
+.logs__meta { padding: 5px 12px; border-top: 1px solid var(--border); color: var(--muted); font-size: 10px; }

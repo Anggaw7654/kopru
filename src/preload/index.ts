@@ -47,6 +47,20 @@ const INVOKE_CHANNELS: readonly IpcInvokeChannel[] = [
   'monitor:history',
   'monitor:restart-service',
   'monitor:list-units',
+  'docker:availability',
+  'docker:containers',
+  'docker:stats',
+  'docker:disk-usage',
+  'docker:container-action',
+  'docker:logs',
+  'docker:follow-start',
+  'docker:follow-stop',
+  'docker:shell-command',
+  'docker:compose-list',
+  'docker:compose-action',
+  'docker:compose-apply',
+  'docker:prune-preview',
+  'docker:prune',
 ]
 
 const SEND_CHANNELS: readonly IpcSendChannel[] = ['terminal:write', 'terminal:resize']
@@ -60,6 +74,7 @@ const EVENT_CHANNELS: readonly IpcEventChannel[] = [
   'transfer:update',
   'fs:invalidate',
   'monitor:sample',
+  'docker:log-chunk',
 ]
 
 const api: KopruApi = {

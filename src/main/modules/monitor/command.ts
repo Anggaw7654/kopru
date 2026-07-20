@@ -59,6 +59,14 @@ export function buildCommand(config: MonitorConfig): string {
     )
   }
 
+  // Cheap (~30 ms) container census for the monitor summary card. `docker
+  // stats` is deliberately NOT here: it samples twice internally and takes
+  // 1-2 s, which would stall every round (ADR 0011).
+  parts.push(`echo "${DELIM}DOCKER"`)
+  parts.push(
+    "docker ps -a --format '{{.State}}|{{.Status}}' 2>/dev/null || echo KOPRU_NO_DOCKER",
+  )
+
   parts.push(`echo "${DELIM}END"`)
   return parts.join('; ')
 }

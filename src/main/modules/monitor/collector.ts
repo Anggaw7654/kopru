@@ -9,6 +9,7 @@ import {
   parsePostgres, parseServices, parseSessions, splitBlocks,
 } from './parse.js'
 import type { CpuSample } from './parse.js'
+import { parseSummary } from '../docker/inspect.js'
 import * as alerts from './alerts.js'
 
 /** 15 minutes at the default 5s interval. */
@@ -71,6 +72,9 @@ async function collectOnce(collector: Collector): Promise<void> {
 
     if (config.nginxLogPath && blocks.NGINX) {
       snapshot.nginx = parseNginx(blocks.NGINX, config.nginxWindowMinutes, now)
+    }
+    if (blocks.DOCKER) {
+      snapshot.docker = parseSummary(blocks.DOCKER)
     }
     if (config.postgres && blocks.PG) {
       const pg = parsePostgres(blocks.PG)

@@ -15,6 +15,11 @@ import * as previews from './modules/files/preview.js'
 import * as editor from './modules/files/editor.js'
 import * as transfers from './modules/files/transfers.js'
 import * as monitor from './modules/monitor/collector.js'
+import * as dockerDetect from './modules/docker/detect.js'
+import * as dockerInspect from './modules/docker/inspect.js'
+import * as dockerControl from './modules/docker/control.js'
+import * as dockerLogs from './modules/docker/logs.js'
+import * as dockerCompose from './modules/docker/compose.js'
 import { dialog, BrowserWindow } from 'electron'
 
 /**
@@ -65,6 +70,8 @@ export function registerIpcHandlers(): void {
   })
   handle('connection:disconnect', ({ profileId }) => {
     monitor.stop(profileId)
+    dockerLogs.stopAllFor(profileId)
+    dockerDetect.forget(profileId)
     terminals.closeAllFor(profileId)
     manager.disconnect(profileId)
   })
@@ -128,6 +135,29 @@ export function registerIpcHandlers(): void {
   handle('monitor:list-units', async ({ profileId }) => ({
     units: await monitor.listUnits(profileId),
   }))
+
+  handle('docker:availability', ({ profileId }) => dockerDetect.detect(profileId))
+  handle('docker:containers', ({ profileId }) => dockerInspect.containers(profileId))
+  handle('docker:stats', ({ profileId }) => dockerInspect.stats(profileId))
+  handle('docker:disk-usage', ({ profileId }) => dockerInspect.diskUsage(profileId))
+  handle('docker:container-action', (request) => dockerControl.containerAction(request))
+  handle('docker:logs', async (request) => ({ content: await dockerLogs.tail(request) }))
+  handle('docker:follow-start', ({ profileId, containerId }) =>
+    dockerLogs.startFollow(profileId, containerId),
+  )
+  handle('docker:follow-stop', ({ profileId, containerId }) => {
+    dockerLogs.stopFollow(profileId, containerId)
+  })
+  handle('docker:shell-command', ({ containerId }) => ({
+    command: dockerLogs.shellCommand(containerId),
+  }))
+  handle('docker:compose-list', ({ profileId }) => dockerCompose.projects(profileId))
+  handle('docker:compose-action', (request) => dockerCompose.action(request))
+  handle('docker:compose-apply', ({ profileId, project }) => dockerCompose.apply(profileId, project))
+  handle('docker:prune-preview', ({ profileId, target }) =>
+    dockerControl.prunePreview(profileId, target),
+  )
+  handle('docker:prune', ({ profileId, target }) => dockerControl.prune(profileId, target))
 
   receive('terminal:write', ({ sessionId, data }) => {
     terminals.write(sessionId, data)

@@ -20,6 +20,54 @@ import { postgresPasswordFor } from '../../ssh/profiles.js'
 /** Three per database: a stuck query cannot be killed from its own connection. */
 const MAX_PER_DATABASE = 3
 
+/**
+ * `pg` assumes its transport is a `net.Socket`, not just a Duplex. An ssh2
+ * channel is a Duplex, so four Socket-only methods are missing and the first
+ * one it touches (`setNoDelay`) throws before a single byte is written.
+ *
+ * Read from pg 8.22 `lib/connection.js` rather than guessed:
+ *
+ *   this.stream.setNoDelay(true)
+ *   this.stream.connect(port, host)
+ *   this.stream.once('connect', ...)   // registered AFTER connect() returns
+ *   ... this.stream.ref() / unref()
+ *
+ * The ordering is the trap: `connect()` is called *before* the 'connect'
+ * listener exists, so emitting synchronously would drop the event and hang
+ * `client.connect()` forever. It is emitted on the next tick instead, by which
+ * point pg has attached the listener.
+ *
+ * `setNoDelay` and `setKeepAlive` are honest no-ops: both are TCP socket
+ * options, and the only TCP socket here belongs to the SSH connection, which
+ * ssh2 already configures (see `keepaliveInterval` in connection.ts). There is
+ * no per-channel Nagle to disable.
+ */
+interface SocketLike {
+  setNoDelay?: (noDelay?: boolean) => unknown
+  setKeepAlive?: (enable?: boolean, initialDelay?: number) => unknown
+  connect?: (...args: unknown[]) => unknown
+  ref?: () => unknown
+  unref?: () => unknown
+}
+
+function makeSocketLike(channel: ClientChannel): ClientChannel {
+  const shim = channel as ClientChannel & SocketLike
+
+  shim.setNoDelay ??= () => shim
+  shim.setKeepAlive ??= () => shim
+  shim.ref ??= () => shim
+  shim.unref ??= () => shim
+  shim.connect ??= () => {
+    // Already connected — the SSH channel was opened before pg was constructed.
+    process.nextTick(() => {
+      shim.emit('connect')
+    })
+    return shim
+  }
+
+  return shim
+}
+
 interface Entry {
   client: Client
   channel: ClientChannel
@@ -58,7 +106,7 @@ function describe(error: unknown, config: PostgresConfig): Error {
 
 async function create(profileId: string, database: string, config: PostgresConfig): Promise<Entry> {
   const connection = requireConnection(profileId)
-  const channel = await connection.forwardOut(config.host, config.port)
+  const channel = makeSocketLike(await connection.forwardOut(config.host, config.port))
 
   const password = postgresPasswordFor(profileId)
   const client = new Client({

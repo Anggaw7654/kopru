@@ -1,4 +1,31 @@
-# Claude Agent SDK — verified API surface
+# Claude Agent SDK — evaluated, then not used
+
+**Decision (20.07.2026): the SDK is not part of Köprü.** The findings below are
+kept because they are the reason, and because the question will come back.
+
+The SDK requires an API key. Its own docs state:
+
+> *"Unless previously approved, Anthropic does not allow third party developers
+> to offer claude.ai login or rate limits for their products, including agents
+> built on the Claude Agent SDK. Please use the API key authentication methods
+> described in this document instead."*
+
+The owner has a Claude subscription and does not want a separate metered API
+key. Wiring subscription credentials into a third-party app is exactly what that
+paragraph prohibits, and there is no supported mechanism for it — implementing
+one would mean reverse-engineering claude.ai's auth flow.
+
+So phase 6 ships as a **context bridge** instead: Köprü assembles and redacts
+the context, the user pastes it into their own Claude client. What is lost is
+the autonomous loop — Claude cannot run commands on the server and iterate on
+the output. That capability needs the SDK, and the SDK needs an API key.
+
+**Revisit if:** the owner obtains an API key, or Anthropic approves
+subscription auth for this use.
+
+---
+
+# Verified API surface (for the day this is revisited)
 
 **Package:** `@anthropic-ai/claude-agent-sdk`
 **Version verified against:** 0.3.215

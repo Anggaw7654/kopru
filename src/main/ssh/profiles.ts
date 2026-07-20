@@ -83,8 +83,48 @@ function encrypt(value: string): string {
   return safeStorage.encryptString(value).toString('base64')
 }
 
-function decrypt(value: string): string {
-  return safeStorage.decryptString(Buffer.from(value, 'base64'))
+/**
+ * safeStorage keys live in the macOS Keychain, and access to them is gated by
+ * the app's code signature. A secret encrypted by the dev run (Electron.app)
+ * therefore cannot be decrypted by the packaged build, which carries a
+ * different ad-hoc signature — and vice versa.
+ *
+ * That is the Keychain working as intended, not a bug, but the raw Electron
+ * error ("Error while decrypting the ciphertext provided to
+ * safeStorage.decryptString") tells the user nothing they can act on.
+ */
+class UndecryptableSecretError extends Error {
+  constructor(what: string) {
+    super(
+      `Kayıtlı ${what} bu uygulama sürümüyle çözülemedi.\n\n` +
+        'Parolalar macOS Anahtar Zinciri’nde, uygulamanın imzasına bağlı olarak ' +
+        'saklanır. Bu profili geliştirme sürümünde kaydettiyseniz paketlenmiş ' +
+        'uygulama onu açamaz.\n\n' +
+        'Çözüm: profili Düzenle’yip ilgili parolayı bir kez yeniden girin.',
+    )
+    this.name = 'UndecryptableSecretError'
+  }
+}
+
+function decrypt(value: string, what: string): string {
+  try {
+    return safeStorage.decryptString(Buffer.from(value, 'base64'))
+  } catch {
+    // The underlying error carries no detail worth surfacing — it says only
+    // that decryption failed, which the message below already explains.
+    throw new UndecryptableSecretError(what)
+  }
+}
+
+/** True when the stored ciphertext can actually be opened by this build. */
+function isReadable(value: string | undefined): boolean {
+  if (value === undefined) return false
+  try {
+    safeStorage.decryptString(Buffer.from(value, 'base64'))
+    return true
+  } catch {
+    return false
+  }
 }
 
 /**
@@ -117,12 +157,12 @@ function toPublic(stored: StoredProfile): Profile {
     username: stored.username,
     authType: stored.authType,
     autoConnect: stored.autoConnect,
-    hasPassword: stored.encryptedPassword !== undefined,
-    hasPassphrase: stored.encryptedPassphrase !== undefined,
+    hasPassword: isReadable(stored.encryptedPassword),
+    hasPassphrase: isReadable(stored.encryptedPassphrase),
     monitor: withMonitorDefaults(stored.monitor),
     postgres: withPostgresDefaults(
       stored.postgres,
-      stored.encryptedPostgresPassword !== undefined,
+      isReadable(stored.encryptedPostgresPassword),
     ),
     shortcuts: stored.shortcuts ?? [],
   }
@@ -208,7 +248,7 @@ export function findStored(id: string): StoredProfile | undefined {
 export function postgresPasswordFor(id: string): string | undefined {
   const stored = findStored(id)
   if (!stored?.encryptedPostgresPassword) return undefined
-  return decrypt(stored.encryptedPostgresPassword)
+  return decrypt(stored.encryptedPostgresPassword, 'veritabanı parolası')
 }
 
 /** Decrypted secrets, for the connect path only. Never returned over IPC. */
@@ -216,7 +256,9 @@ export function secretsFor(id: string): { password?: string; passphrase?: string
   const stored = findStored(id)
   if (!stored) return {}
   const out: { password?: string; passphrase?: string } = {}
-  if (stored.encryptedPassword) out.password = decrypt(stored.encryptedPassword)
-  if (stored.encryptedPassphrase) out.passphrase = decrypt(stored.encryptedPassphrase)
+  if (stored.encryptedPassword) out.password = decrypt(stored.encryptedPassword, 'parola')
+  if (stored.encryptedPassphrase) {
+    out.passphrase = decrypt(stored.encryptedPassphrase, 'anahtar parolası')
+  }
   return out
 }

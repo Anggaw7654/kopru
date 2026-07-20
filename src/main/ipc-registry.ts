@@ -9,6 +9,12 @@ import type {
 import * as profiles from './ssh/profiles.js'
 import * as manager from './ssh/manager.js'
 import * as terminals from './modules/terminal/registry.js'
+import * as files from './modules/files/operations.js'
+import * as shellOps from './modules/files/shell-ops.js'
+import * as previews from './modules/files/preview.js'
+import * as editor from './modules/files/editor.js'
+import * as transfers from './modules/files/transfers.js'
+import { dialog, BrowserWindow } from 'electron'
 
 /**
  * Typed wrappers. Every handler's argument and return type is checked against
@@ -64,6 +70,51 @@ export function registerIpcHandlers(): void {
   handle('terminal:create', (request) => terminals.create(request))
   handle('terminal:close', ({ sessionId }) => {
     terminals.close(sessionId)
+  })
+
+  handle('fs:list', (request) => files.list(request))
+  handle('fs:home', async ({ profileId }) => ({ path: await files.home(profileId) }))
+  handle('fs:mkdir', (request) => files.mkdir(request))
+  handle('fs:rename', (request) => files.rename(request))
+  handle('fs:copy', (request) => shellOps.copy(request))
+  handle('fs:delete', (request) => shellOps.remove(request))
+  handle('fs:chmod', (request) =>
+    request.recursive ? shellOps.chmodRecursive(request) : files.chmod(request),
+  )
+  handle('fs:compress', (request) => shellOps.compress(request))
+  handle('fs:extract', (request) => shellOps.extract(request))
+  handle('fs:preview', (request) => previews.preview(request))
+  handle('fs:open', (request) => editor.open(request))
+  handle('fs:save', (request) => editor.save(request))
+
+  handle('transfer:upload', ({ profileId, localPaths, destinationDir }) => {
+    transfers.upload(profileId, localPaths, destinationDir)
+  })
+  handle('transfer:download', async ({ profileId, remotePaths }) => {
+    // The folder picker lives in main: the renderer must never learn a local
+    // path the user did not choose.
+    const window = BrowserWindow.getFocusedWindow()
+    const result = await (window
+      ? dialog.showOpenDialog(window, {
+          title: 'İndirme klasörünü seçin',
+          properties: ['openDirectory', 'createDirectory'],
+          buttonLabel: 'Buraya indir',
+        })
+      : dialog.showOpenDialog({
+          title: 'İndirme klasörünü seçin',
+          properties: ['openDirectory', 'createDirectory'],
+          buttonLabel: 'Buraya indir',
+        }))
+    const target = result.filePaths[0]
+    if (result.canceled || target === undefined) return
+    await transfers.download(profileId, remotePaths, target)
+  })
+  handle('transfer:cancel', ({ id }) => {
+    transfers.cancel(id)
+  })
+  handle('transfer:list', () => transfers.list())
+  handle('transfer:clear-finished', () => {
+    transfers.clearFinished()
   })
 
   receive('terminal:write', ({ sessionId, data }) => {

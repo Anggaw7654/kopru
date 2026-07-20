@@ -1,6 +1,24 @@
 import type { Profile, ProfileInput } from './types/profile.js'
 import type { ConnectionSnapshot, HostKeyMismatch } from './types/connection.js'
 import type {
+  ArchiveRequest,
+  ChmodRequest,
+  CopyRequest,
+  DeleteRequest,
+  DownloadRequest,
+  ExtractRequest,
+  ListRequest,
+  ListResult,
+  OpenFileResult,
+  PathRequest,
+  PreviewResult,
+  RenameRequest,
+  SaveFileRequest,
+  SaveFileResult,
+  Transfer,
+  UploadRequest,
+} from './types/files.js'
+import type {
   TerminalCreateRequest,
   TerminalData,
   TerminalExit,
@@ -35,6 +53,26 @@ export interface IpcInvokeMap {
 
   'terminal:create': { req: TerminalCreateRequest; res: TerminalSession }
   'terminal:close': { req: { sessionId: string }; res: void }
+
+  'fs:list': { req: ListRequest; res: ListResult }
+  'fs:home': { req: { profileId: string }; res: { path: string } }
+  'fs:mkdir': { req: PathRequest; res: void }
+  'fs:rename': { req: RenameRequest; res: void }
+  'fs:copy': { req: CopyRequest; res: void }
+  'fs:delete': { req: DeleteRequest; res: void }
+  'fs:chmod': { req: ChmodRequest; res: void }
+  'fs:compress': { req: ArchiveRequest; res: void }
+  'fs:extract': { req: ExtractRequest; res: void }
+  'fs:preview': { req: PathRequest; res: PreviewResult }
+  'fs:open': { req: PathRequest; res: OpenFileResult }
+  'fs:save': { req: SaveFileRequest; res: SaveFileResult }
+
+  'transfer:upload': { req: UploadRequest; res: void }
+  /** Opens a native folder picker, then queues the downloads. */
+  'transfer:download': { req: DownloadRequest; res: void }
+  'transfer:cancel': { req: { id: string }; res: void }
+  'transfer:list': { req: void; res: Transfer[] }
+  'transfer:clear-finished': { req: void; res: void }
 }
 
 /**
@@ -55,6 +93,10 @@ export interface IpcEventMap {
   'terminal:exit': TerminalExit
   /** A dropped session was replaced with a fresh pty; UI marks the tab. */
   'terminal:restored': { sessionId: string }
+  /** Progress ticks and terminal states for one transfer. */
+  'transfer:update': Transfer
+  /** Something changed this directory behind the UI's back (e.g. an upload finished). */
+  'fs:invalidate': { profileId: string; path: string }
 }
 
 export type IpcInvokeChannel = keyof IpcInvokeMap
@@ -75,4 +117,11 @@ export interface KopruApi {
 
   /** Returns an unsubscribe function; callers must call it on unmount. */
   on<C extends IpcEventChannel>(channel: C, listener: (payload: IpcEventMap[C]) => void): () => void
+
+  /**
+   * Local filesystem path of a dropped File. Electron 32 removed `File.path`;
+   * this is the supported replacement and the only way drag-and-drop upload can
+   * learn what the user dropped.
+   */
+  pathForFile(file: File): string | null
 }

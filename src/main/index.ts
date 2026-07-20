@@ -3,6 +3,7 @@ import { app, BrowserWindow, shell, session } from 'electron'
 import { registerIpcHandlers } from './ipc-registry.js'
 import * as manager from './ssh/manager.js'
 import * as terminals from './modules/terminal/registry.js'
+import * as sftpPool from './modules/files/sftp.js'
 
 const isDev = !app.isPackaged
 
@@ -73,6 +74,9 @@ void app.whenReady().then(async () => {
 
   // A reconnect leaves every tab without a remote pty; give them fresh ones.
   manager.onConnectionReady((profileId) => {
+    // The old SFTP channels went down with the connection; forget the handles
+    // so the next request opens fresh ones.
+    sftpPool.reset(profileId)
     void terminals.reviveFor(profileId)
   })
 

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-invalid-void-type -- mirrors the void
  * payload markers in the IPC contract; see src/shared/ipc.ts. */
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer, webUtils } from 'electron'
 import type {
   IpcEventChannel,
   IpcEventMap,
@@ -27,6 +27,23 @@ const INVOKE_CHANNELS: readonly IpcInvokeChannel[] = [
   'connection:status',
   'terminal:create',
   'terminal:close',
+  'fs:list',
+  'fs:home',
+  'fs:mkdir',
+  'fs:rename',
+  'fs:copy',
+  'fs:delete',
+  'fs:chmod',
+  'fs:compress',
+  'fs:extract',
+  'fs:preview',
+  'fs:open',
+  'fs:save',
+  'transfer:upload',
+  'transfer:download',
+  'transfer:cancel',
+  'transfer:list',
+  'transfer:clear-finished',
 ]
 
 const SEND_CHANNELS: readonly IpcSendChannel[] = ['terminal:write', 'terminal:resize']
@@ -37,6 +54,8 @@ const EVENT_CHANNELS: readonly IpcEventChannel[] = [
   'terminal:data',
   'terminal:exit',
   'terminal:restored',
+  'transfer:update',
+  'fs:invalidate',
 ]
 
 const api: KopruApi = {
@@ -73,6 +92,11 @@ const api: KopruApi = {
     return () => {
       ipcRenderer.removeListener(channel, wrapped)
     }
+  },
+
+  pathForFile(file: File): string | null {
+    const path = webUtils.getPathForFile(file)
+    return path === '' ? null : path
   },
 }
 

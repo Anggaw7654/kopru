@@ -25,6 +25,7 @@ import * as pgSchema from './modules/postgres/schema.js'
 import * as pgQuery from './modules/postgres/query.js'
 import * as pgHealth from './modules/postgres/health.js'
 import * as pgBackup from './modules/postgres/backup.js'
+import * as contextCollect from './modules/context/collect.js'
 import { dialog, BrowserWindow } from 'electron'
 
 /**
@@ -222,6 +223,12 @@ export function registerIpcHandlers(): void {
     const target = result.filePaths[0]
     if (result.canceled || target === undefined) return null
     return pgBackup.backup(request, pgConfig(request.profileId), target)
+  })
+
+  handle('context:system-summary', ({ profileId }) => {
+    const profile = profiles.list().find((p) => p.id === profileId)
+    if (!profile) throw new Error('Profil bulunamadı.')
+    return contextCollect.summarise(profile)
   })
 
   receive('terminal:write', ({ sessionId, data }) => {

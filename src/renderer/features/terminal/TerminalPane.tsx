@@ -4,6 +4,7 @@ import { FitAddon } from '@xterm/addon-fit'
 import { SearchAddon } from '@xterm/addon-search'
 import { WebglAddon } from '@xterm/addon-webgl'
 import '@xterm/xterm/css/xterm.css'
+import { useContextStore } from '../../stores/context.js'
 
 interface Props {
   sessionId: string
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export function TerminalPane({ sessionId, visible }: Props): React.JSX.Element {
+  const addContext = useContextStore((s) => s.add)
   const hostRef = useRef<HTMLDivElement>(null)
   const termRef = useRef<Terminal | null>(null)
   const fitRef = useRef<FitAddon | null>(null)
@@ -69,6 +71,18 @@ export function TerminalPane({ sessionId, visible }: Props): React.JSX.Element {
       window.kopru.send('terminal:write', { sessionId, data })
     })
 
+    // Right-click on a selection offers to send it as context. Anything else
+    // falls through to the platform menu.
+    const onContextMenu = (event: MouseEvent): void => {
+      const selection = term.getSelection()
+      if (selection.trim() === '') return
+      event.preventDefault()
+      const preview = selection.trim().split('\n')[0]?.slice(0, 40) ?? ''
+      if (!window.confirm(`Seçili ${String(selection.length)} karakter Claude bağlamına eklensin mi?\n\n${preview}…`)) return
+      addContext({ kind: 'terminal', label: 'Terminal seçimi', content: selection })
+    }
+    host.addEventListener('contextmenu', onContextMenu)
+
     const resize = (): void => {
       fit.fit()
       window.kopru.send('terminal:resize', { sessionId, cols: term.cols, rows: term.rows })
@@ -77,6 +91,7 @@ export function TerminalPane({ sessionId, visible }: Props): React.JSX.Element {
     observer.observe(host)
 
     return () => {
+      host.removeEventListener('contextmenu', onContextMenu)
       observer.disconnect()
       inputDisposable.dispose()
       offData()
@@ -86,7 +101,7 @@ export function TerminalPane({ sessionId, visible }: Props): React.JSX.Element {
       termRef.current = null
       fitRef.current = null
     }
-  }, [sessionId])
+  }, [sessionId, addContext])
 
   // A hidden pane has zero size, so xterm can't measure; refit when it returns.
   useEffect(() => {

@@ -8,6 +8,7 @@ import { FileBrowser } from './features/files/FileBrowser.js'
 import { MonitorPanel } from './features/monitor/MonitorPanel.js'
 import { DockerPanel } from './features/docker/DockerPanel.js'
 import { PostgresPanel } from './features/postgres/PostgresPanel.js'
+import { ContextPanel } from './features/context/ContextPanel.js'
 import { useFileStore } from './stores/files.js'
 import { useMonitorStore } from './stores/monitor.js'
 import { useProfileStore as useProfiles } from './stores/profiles.js'
@@ -188,6 +189,7 @@ export function App(): React.JSX.Element {
             </div>
           </>
         )}
+        <ContextPanel profileId={activeProfileId} />
       </main>
     </div>
   )

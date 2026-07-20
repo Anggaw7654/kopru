@@ -44,6 +44,7 @@ import type {
   TableDetail,
   TableRef,
 } from './types/postgres.js'
+import type { SystemSummary } from './types/context.js'
 import type {
   MetricSnapshot,
   MonitorHistory,
@@ -153,6 +154,9 @@ export interface IpcInvokeMap {
   }
   /** Runs pg_dump on the server, then queues the download. */
   'pg:backup': { req: BackupRequest; res: { remotePath: string } | null }
+
+  /** Fresh, credential-free picture of the server for a pasted context block. */
+  'context:system-summary': { req: { profileId: string }; res: SystemSummary }
 }
 
 /**

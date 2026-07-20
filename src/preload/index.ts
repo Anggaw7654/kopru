@@ -72,6 +72,7 @@ const INVOKE_CHANNELS: readonly IpcInvokeChannel[] = [
   'pg:health',
   'pg:cancel-query',
   'pg:backup',
+  'context:system-summary',
 ]
 
 const SEND_CHANNELS: readonly IpcSendChannel[] = ['terminal:write', 'terminal:resize']

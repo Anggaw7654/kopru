@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type * as MonacoNamespace from 'monaco-editor'
 import type { DangerAssessment, QueryResult } from '@shared/types/postgres.js'
 import { usePostgresStore } from '../../stores/postgres.js'
+import { useContextStore } from '../../stores/context.js'
 import { DataGrid } from './DataGrid.js'
 import { DangerousQueryDialog } from './DangerousQueryDialog.js'
 
@@ -23,6 +24,7 @@ export function SqlEditor({ profileId, database }: Props): React.JSX.Element {
   const runRef = useRef<(() => void) | null>(null)
 
   const { writeMode, setWriteMode, history, pushHistory } = usePostgresStore()
+  const addContext = useContextStore((s) => s.add)
   const [result, setResult] = useState<QueryResult | null>(null)
   const [plan, setPlan] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -144,7 +146,21 @@ export function SqlEditor({ profileId, database }: Props): React.JSX.Element {
           {busy ? 'Çalışıyor…' : 'Çalıştır (⌘⏎)'}
         </button>
         <button type="button" disabled={busy} onClick={explain}>EXPLAIN ANALYZE</button>
-        <button type="button" disabled title="Faz 6’da gelecek">Claude ile optimize et</button>
+        <button
+          type="button"
+          onClick={() => {
+            const sql = selectedOrAll().trim()
+            if (sql === '') return
+            addContext({ kind: 'sql', label: `${database} sorgusu`, content: sql, language: 'sql' })
+            if (plan !== null) {
+              addContext({ kind: 'sql', label: 'EXPLAIN ANALYZE çıktısı', content: plan })
+            }
+            // Row data is deliberately not attached — the schema and the plan
+            // are what an optimisation question needs.
+          }}
+        >
+          Claude’a gönder
+        </button>
 
         <label className={`checkbox write-toggle ${writeMode ? 'write-toggle--on' : ''}`}>
           <input

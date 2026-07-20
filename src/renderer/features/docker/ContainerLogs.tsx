@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Container } from '@shared/types/docker.js'
+import { useContextStore } from '../../stores/context.js'
 
 interface Props {
   profileId: string
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export function ContainerLogs({ profileId, container, onClose }: Props): React.JSX.Element {
+  const addContext = useContextStore((s) => s.add)
   const [lines, setLines] = useState<string[]>([])
   const [following, setFollowing] = useState(false)
   const [search, setSearch] = useState('')
@@ -77,7 +79,20 @@ export function ContainerLogs({ profileId, container, onClose }: Props): React.J
           />
           Canlı takip
         </label>
-        <button type="button" disabled title="Faz 6’da gelecek">Claude’a gönder</button>
+        <button
+          type="button"
+          onClick={() => {
+            // Send what is on screen: if the user filtered down to the errors,
+            // that filtered view is the question they are actually asking.
+            addContext({
+              kind: 'log',
+              label: `${container.name}${search === '' ? '' : ` (filtre: ${search})`}`,
+              content: visible.join('\n'),
+            })
+          }}
+        >
+          Claude’a gönder
+        </button>
         <button type="button" onClick={onClose}>Kapat</button>
       </header>
 

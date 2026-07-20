@@ -10,6 +10,7 @@ import { PermissionsDialog } from './PermissionsDialog.js'
 import { MonacoEditor } from './MonacoEditor.js'
 import { TransferQueue } from './TransferQueue.js'
 import { ShortcutList } from './ShortcutList.js'
+import { useContextStore } from '../../stores/context.js'
 import { formatDateTime, formatMode, formatSize } from './format.js'
 
 interface Props {
@@ -35,6 +36,7 @@ export function FileBrowser({ profile }: Props): React.JSX.Element {
   const { path, entries, selected, loading, error, showHidden, recents } = store
   const setTransfersOpen = useTransferStore((s) => s.setOpen)
   const addTerminalTab = useTerminalStore((s) => s.add)
+  const addContext = useContextStore((s) => s.add)
 
   const [menu, setMenu] = useState<MenuState | null>(null)
   const [quickLook, setQuickLook] = useState<DirEntry | null>(null)
@@ -156,6 +158,30 @@ export function FileBrowser({ profile }: Props): React.JSX.Element {
       window.kopru
         .invoke('fs:extract', { profileId, archivePath: entry.path, destinationDir: path })
         .then(refresh)
+        .catch(fail)
+    },
+    sendToClaude: (entry: DirEntry) => {
+      if (entry.kind === 'directory') {
+        addContext({
+          kind: 'file',
+          label: entry.path,
+          content: entries.map((e) => `${e.kind === 'directory' ? 'd' : '-'} ${e.name}`).join('\n'),
+        })
+        return
+      }
+      window.kopru
+        .invoke('fs:open', { profileId, path: entry.path })
+        .then((file) => {
+          addContext({
+            kind: 'file',
+            label: file.path,
+            content: file.content,
+            language: file.language,
+            // The path drives whole-file redaction: a .env is secret even when
+            // none of its lines look like one.
+            sourcePath: file.path,
+          })
+        })
         .catch(fail)
     },
     openTerminal: (entry: DirEntry) => {
@@ -283,7 +309,9 @@ export function FileBrowser({ profile }: Props): React.JSX.Element {
             <button type="button" onClick={() => { action.extract(menu.entry); setMenu(null) }}>Buraya çıkart</button>
           )}
           <button type="button" onClick={() => { action.openTerminal(menu.entry); setMenu(null) }}>Terminalde aç</button>
-          <button type="button" disabled title="Faz 6’da gelecek">Claude’a sor</button>
+          <button type="button" onClick={() => { action.sendToClaude(menu.entry); setMenu(null) }}>
+            Claude’a gönder
+          </button>
           <hr />
           <button type="button" className="danger" onClick={() => { action.remove(menu.entry); setMenu(null) }}>Sil</button>
         </div>

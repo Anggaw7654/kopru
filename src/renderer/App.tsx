@@ -5,7 +5,10 @@ import { useTerminalStore } from './stores/terminal.js'
 import { ProfileList } from './features/profiles/ProfileList.js'
 import { TerminalTabs } from './features/terminal/TerminalTabs.js'
 import { FileBrowser } from './features/files/FileBrowser.js'
+import { MonitorPanel } from './features/monitor/MonitorPanel.js'
 import { useFileStore } from './stores/files.js'
+import { useMonitorStore } from './stores/monitor.js'
+import { useProfileStore as useProfiles } from './stores/profiles.js'
 import { useTransferStore } from './stores/transfers.js'
 
 export function App(): React.JSX.Element {
@@ -16,7 +19,9 @@ export function App(): React.JSX.Element {
   const removeTab = useTerminalStore((s) => s.remove)
   const applyTransfer = useTransferStore((s) => s.apply)
   const hydrateTransfers = useTransferStore((s) => s.hydrate)
-  const [view, setView] = useState<'files' | 'terminal'>('files')
+  const applySample = useMonitorStore((s) => s.apply)
+  const profiles = useProfiles((s) => s.profiles)
+  const [view, setView] = useState<'files' | 'terminal' | 'monitor'>('files')
 
   useEffect(() => {
     void loadProfiles()
@@ -42,6 +47,9 @@ export function App(): React.JSX.Element {
     const offTransfer = window.kopru.on('transfer:update', (transfer) => {
       applyTransfer(transfer)
     })
+    const offSample = window.kopru.on('monitor:sample', (snapshot) => {
+      applySample(snapshot)
+    })
     const offInvalidate = window.kopru.on('fs:invalidate', ({ profileId, path }) => {
       // Only reload if the user is standing in the directory that changed.
       const store = useFileStore.getState()
@@ -63,11 +71,14 @@ export function App(): React.JSX.Element {
       offExit()
       offTransfer()
       offInvalidate()
+      offSample()
     }
   }, [
     loadProfiles, hydrate, apply, setMismatch, setActive, markRestored, removeTab,
-    applyTransfer, hydrateTransfers,
+    applyTransfer, hydrateTransfers, applySample,
   ])
+
+  const activeProfile = profiles.find((p) => p.id === activeProfileId)
 
   return (
     <div className="app">
@@ -95,6 +106,13 @@ export function App(): React.JSX.Element {
               </button>
               <button
                 type="button"
+                className={view === 'monitor' ? 'view-switch--active' : ''}
+                onClick={() => { setView('monitor') }}
+              >
+                İzleme
+              </button>
+              <button
+                type="button"
                 className={view === 'terminal' ? 'view-switch--active' : ''}
                 onClick={() => { setView('terminal') }}
               >
@@ -105,6 +123,9 @@ export function App(): React.JSX.Element {
                 every tab's scrollback on a view switch. */}
             <div style={{ display: view === 'files' ? 'contents' : 'none' }}>
               <FileBrowser profileId={activeProfileId} />
+            </div>
+            <div style={{ display: view === 'monitor' ? 'contents' : 'none' }}>
+              {view === 'monitor' && activeProfile && <MonitorPanel profile={activeProfile} />}
             </div>
             <div style={{ display: view === 'terminal' ? 'contents' : 'none' }}>
               <TerminalTabs />

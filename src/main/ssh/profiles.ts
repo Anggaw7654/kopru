@@ -3,6 +3,8 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { app, safeStorage } from 'electron'
 import type { Profile, ProfileInput } from '../../shared/types/profile.js'
+import type { MonitorConfig } from '../../shared/types/metrics.js'
+import { DEFAULT_MONITOR } from '../../shared/types/metrics.js'
 
 /**
  * On-disk shape. Secrets are stored as base64 of safeStorage ciphertext, which
@@ -20,6 +22,8 @@ interface StoredProfile {
   autoConnect: boolean
   encryptedPassword?: string
   encryptedPassphrase?: string
+  /** Absent on profiles written before the monitor module existed. */
+  monitor?: MonitorConfig
 }
 
 interface ProfileFile {
@@ -76,6 +80,20 @@ function decrypt(value: string): string {
   return safeStorage.decryptString(Buffer.from(value, 'base64'))
 }
 
+/**
+ * Profiles saved before phase 3 have no `monitor` block. Fill it in on read
+ * rather than migrating the file: an unwritten profile keeps working if the
+ * user rolls back, and nothing is rewritten until they save.
+ */
+function withMonitorDefaults(monitor: MonitorConfig | undefined): MonitorConfig {
+  if (!monitor) return { ...DEFAULT_MONITOR }
+  return {
+    ...DEFAULT_MONITOR,
+    ...monitor,
+    thresholds: { ...DEFAULT_MONITOR.thresholds, ...monitor.thresholds },
+  }
+}
+
 function toPublic(stored: StoredProfile): Profile {
   const profile: Profile = {
     id: stored.id,
@@ -87,6 +105,7 @@ function toPublic(stored: StoredProfile): Profile {
     autoConnect: stored.autoConnect,
     hasPassword: stored.encryptedPassword !== undefined,
     hasPassphrase: stored.encryptedPassphrase !== undefined,
+    monitor: withMonitorDefaults(stored.monitor),
   }
   if (stored.privateKeyPath !== undefined) profile.privateKeyPath = stored.privateKeyPath
   return profile
@@ -109,6 +128,7 @@ export function save(input: ProfileInput): Profile {
     username: input.username,
     authType: input.authType,
     autoConnect: input.autoConnect,
+    monitor: withMonitorDefaults(input.monitor ?? previous?.monitor),
   }
   if (input.privateKeyPath !== undefined) next.privateKeyPath = input.privateKeyPath
 

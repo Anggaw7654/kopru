@@ -19,6 +19,11 @@ import type {
   UploadRequest,
 } from './types/files.js'
 import type {
+  MetricSnapshot,
+  MonitorHistory,
+  RestartServiceRequest,
+} from './types/metrics.js'
+import type {
   TerminalCreateRequest,
   TerminalData,
   TerminalExit,
@@ -73,6 +78,12 @@ export interface IpcInvokeMap {
   'transfer:cancel': { req: { id: string }; res: void }
   'transfer:list': { req: void; res: Transfer[] }
   'transfer:clear-finished': { req: void; res: void }
+
+  /** Buffered history so a newly opened window draws a full chart immediately. */
+  'monitor:history': { req: { profileId: string }; res: MonitorHistory }
+  'monitor:restart-service': { req: RestartServiceRequest; res: void }
+  /** Lists systemd units so the settings screen can offer real choices. */
+  'monitor:list-units': { req: { profileId: string }; res: { units: string[] } }
 }
 
 /**
@@ -97,6 +108,7 @@ export interface IpcEventMap {
   'transfer:update': Transfer
   /** Something changed this directory behind the UI's back (e.g. an upload finished). */
   'fs:invalidate': { profileId: string; path: string }
+  'monitor:sample': MetricSnapshot
 }
 
 export type IpcInvokeChannel = keyof IpcInvokeMap

@@ -13,9 +13,15 @@ const connections = new Map<string, SshConnection>()
  */
 type ReadyHandler = (profileId: string) => void
 const readyHandlers: ReadyHandler[] = []
+const lostHandlers: ReadyHandler[] = []
 
 export function onConnectionReady(handler: ReadyHandler): void {
   readyHandlers.push(handler)
+}
+
+/** Fires when a connected profile stops being connected, for any reason. */
+export function onConnectionLost(handler: ReadyHandler): void {
+  lostHandlers.push(handler)
 }
 
 /** Push to every open window; tabs may live in any of them. */
@@ -44,6 +50,9 @@ export async function connect(profileId: string): Promise<void> {
     connection = new SshConnection(profile)
     connection.on('state', (snapshot: ConnectionSnapshot) => {
       broadcast('connection:state', snapshot)
+      if (snapshot.state !== 'connected') {
+        for (const handler of lostHandlers) handler(profileId)
+      }
     })
     connection.on('ready', () => {
       for (const handler of readyHandlers) handler(profileId)

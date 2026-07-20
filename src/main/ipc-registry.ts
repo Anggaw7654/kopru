@@ -14,6 +14,7 @@ import * as shellOps from './modules/files/shell-ops.js'
 import * as previews from './modules/files/preview.js'
 import * as editor from './modules/files/editor.js'
 import * as transfers from './modules/files/transfers.js'
+import * as monitor from './modules/monitor/collector.js'
 import { dialog, BrowserWindow } from 'electron'
 
 /**
@@ -53,6 +54,7 @@ export function registerIpcHandlers(): void {
   handle('profiles:list', () => profiles.list())
   handle('profiles:save', (input) => profiles.save(input))
   handle('profiles:delete', ({ id }) => {
+    monitor.forget(id)
     manager.disconnect(id)
     terminals.closeAllFor(id)
     profiles.remove(id)
@@ -62,6 +64,7 @@ export function registerIpcHandlers(): void {
     await manager.connect(profileId)
   })
   handle('connection:disconnect', ({ profileId }) => {
+    monitor.stop(profileId)
     terminals.closeAllFor(profileId)
     manager.disconnect(profileId)
   })
@@ -116,6 +119,15 @@ export function registerIpcHandlers(): void {
   handle('transfer:clear-finished', () => {
     transfers.clearFinished()
   })
+
+  handle('monitor:history', ({ profileId }) => ({
+    profileId,
+    snapshots: monitor.history(profileId),
+  }))
+  handle('monitor:restart-service', ({ profileId, unit }) => monitor.restartService(profileId, unit))
+  handle('monitor:list-units', async ({ profileId }) => ({
+    units: await monitor.listUnits(profileId),
+  }))
 
   receive('terminal:write', ({ sessionId, data }) => {
     terminals.write(sessionId, data)

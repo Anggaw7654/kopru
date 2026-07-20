@@ -44,6 +44,9 @@ const INVOKE_CHANNELS: readonly IpcInvokeChannel[] = [
   'transfer:cancel',
   'transfer:list',
   'transfer:clear-finished',
+  'monitor:history',
+  'monitor:restart-service',
+  'monitor:list-units',
 ]
 
 const SEND_CHANNELS: readonly IpcSendChannel[] = ['terminal:write', 'terminal:resize']
@@ -56,6 +59,7 @@ const EVENT_CHANNELS: readonly IpcEventChannel[] = [
   'terminal:restored',
   'transfer:update',
   'fs:invalidate',
+  'monitor:sample',
 ]
 
 const api: KopruApi = {

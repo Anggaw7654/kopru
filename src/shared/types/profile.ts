@@ -1,4 +1,6 @@
 /** How we authenticate to a server. */
+import type { MonitorConfig } from './metrics.js'
+
 export type AuthType = 'key' | 'password' | 'agent'
 
 /**
@@ -21,6 +23,7 @@ export interface Profile {
   autoConnect: boolean
   hasPassword: boolean
   hasPassphrase: boolean
+  monitor: MonitorConfig
 }
 
 /** What the renderer sends when creating or updating a profile. */
@@ -34,6 +37,8 @@ export interface ProfileInput {
   authType: AuthType
   privateKeyPath?: string
   autoConnect: boolean
+  /** Absent on save means "leave the stored monitor settings alone". */
+  monitor?: MonitorConfig
   /**
    * Plaintext secrets, present only in this one direction and only when the user
    * just typed them. `undefined` means "leave whatever is stored alone";

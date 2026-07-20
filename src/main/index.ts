@@ -4,6 +4,8 @@ import { registerIpcHandlers } from './ipc-registry.js'
 import * as manager from './ssh/manager.js'
 import * as terminals from './modules/terminal/registry.js'
 import * as sftpPool from './modules/files/sftp.js'
+import * as monitor from './modules/monitor/collector.js'
+import * as profiles from './ssh/profiles.js'
 
 const isDev = !app.isPackaged
 
@@ -78,6 +80,16 @@ void app.whenReady().then(async () => {
     // so the next request opens fresh ones.
     sftpPool.reset(profileId)
     void terminals.reviveFor(profileId)
+
+    // Metric collection runs while connected regardless of whether the panel is
+    // open; alerts that only fire when the user is already watching are useless.
+    const profile = profiles.list().find((p) => p.id === profileId)
+    if (profile) monitor.start(profile)
+  })
+
+  manager.onConnectionLost((profileId) => {
+    // Without this every tick would throw "not connected" until reconnect.
+    monitor.stop(profileId)
   })
 
   createWindow()

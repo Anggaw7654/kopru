@@ -80,7 +80,8 @@ export function MonacoEditor({ profileId, file, onClose }: Props): React.JSX.Ele
       const editor = monaco.editor.create(host, {
         value: file.content,
         language: file.language,
-        theme: 'vs-dark',
+        // Matches the app theme; 'vs' is Monaco's light variant.
+        theme: document.documentElement.dataset['theme'] === 'light' ? 'vs' : 'vs-dark',
         automaticLayout: true,
         minimap: { enabled: false },
         fontSize: 13,

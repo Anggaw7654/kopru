@@ -1,5 +1,5 @@
 import { join } from 'node:path'
-import { app, BrowserWindow, shell, session } from 'electron'
+import { app, BrowserWindow, shell, session, ipcMain } from 'electron'
 import { registerIpcHandlers } from './ipc-registry.js'
 import * as manager from './ssh/manager.js'
 import * as terminals from './modules/terminal/registry.js'
@@ -103,6 +103,13 @@ void app.whenReady().then(async () => {
   })
 
   createWindow()
+
+  // Sessions live in main, so a second window is a second view of the same
+  // connections rather than a second app (ADR 0001). Tabs opened here share the
+  // server; closing either window leaves the sessions running.
+  ipcMain.handle('window:new', () => {
+    createWindow()
+  })
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

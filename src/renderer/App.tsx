@@ -9,6 +9,8 @@ import { MonitorPanel } from './features/monitor/MonitorPanel.js'
 import { DockerPanel } from './features/docker/DockerPanel.js'
 import { PostgresPanel } from './features/postgres/PostgresPanel.js'
 import { ContextPanel } from './features/context/ContextPanel.js'
+import { SettingsPanel } from './features/settings/SettingsPanel.js'
+import { useSettingsStore, applyTheme } from './stores/settings.js'
 import { useFileStore } from './stores/files.js'
 import { useMonitorStore } from './stores/monitor.js'
 import { useProfileStore as useProfiles } from './stores/profiles.js'
@@ -25,6 +27,19 @@ export function App(): React.JSX.Element {
   const applySample = useMonitorStore((s) => s.apply)
   const profiles = useProfiles((s) => s.profiles)
   const [view, setView] = useState<'files' | 'terminal' | 'monitor' | 'docker' | 'pg'>('files')
+  const settingsOpen = useSettingsStore((s) => s.open)
+  const themeChoice = useSettingsStore((s) => s.theme)
+
+  useEffect(() => {
+    applyTheme(themeChoice)
+    if (themeChoice !== 'system') return
+    // Only track the OS while set to follow it; an explicit choice must not be
+    // overridden when the Mac switches at sunset.
+    const media = window.matchMedia('(prefers-color-scheme: dark)')
+    const onChange = (): void => { applyTheme('system') }
+    media.addEventListener('change', onChange)
+    return () => { media.removeEventListener('change', onChange) }
+  }, [themeChoice])
 
   useEffect(() => {
     void loadProfiles().then(() => {
@@ -190,6 +205,7 @@ export function App(): React.JSX.Element {
           </>
         )}
         <ContextPanel profileId={activeProfileId} />
+        {settingsOpen && <SettingsPanel />}
       </main>
     </div>
   )

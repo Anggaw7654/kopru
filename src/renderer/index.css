@@ -1,4 +1,5 @@
-:root {
+:root,
+:root[data-theme='dark'] {
   --bg: #1a1b26;
   --bg-alt: #16161e;
   --panel: #1f2335;
@@ -9,6 +10,25 @@
   --ok: #9ece6a;
   --warn: #e0af68;
   --danger: #f7768e;
+  --terminal-bg: #1a1b26;
+  --terminal-fg: #c0caf5;
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  --bg: #fbfbfd;
+  --bg-alt: #f1f2f6;
+  --panel: #ffffff;
+  --border: #d8dae3;
+  --text: #23283b;
+  --muted: #6b7086;
+  --accent: #2f6ee0;
+  --ok: #3f8f3f;
+  --warn: #a56a00;
+  --danger: #c3283f;
+  --terminal-bg: #ffffff;
+  --terminal-fg: #23283b;
+  color-scheme: light;
 }
 
 * {
@@ -311,8 +331,8 @@ button.danger:hover {
 .file-table th { text-align: left; font-weight: 500; color: var(--muted); font-size: 10px; text-transform: uppercase; padding: 4px 8px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); }
 .file-table td { padding: 4px 8px; border-bottom: 1px solid rgba(47, 51, 77, 0.4); }
 .file-table tr { cursor: default; user-select: none; }
-.file-table tr:hover td { background: rgba(122, 162, 247, 0.06); }
-.row--selected td { background: rgba(122, 162, 247, 0.16) !important; }
+.file-table tr:hover td { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+.row--selected td { background: color-mix(in srgb, var(--accent) 18%, transparent) !important; }
 .file-table code { color: var(--muted); font-size: 11px; }
 
 /* --- context menu --- */
@@ -373,7 +393,7 @@ button.danger:hover {
 
 .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; margin-bottom: 16px; }
 .chart { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 6px; overflow: hidden; }
-.chart .u-title { font-size: 11px; color: var(--muted); font-weight: 500; }
+.chart .u-title, .chart text { font-size: 11px; color: var(--muted); font-weight: 500; }
 .chart .u-legend { font-size: 10px; }
 
 .section, .disks { margin-bottom: 16px; }
@@ -478,7 +498,7 @@ th.sortable:hover { color: var(--accent); }
 
 .shortcut { display: flex; align-items: center; border-radius: 5px; }
 .shortcut:hover { background: var(--panel); }
-.shortcut--active { background: rgba(122, 162, 247, 0.14); }
+.shortcut--active { background: color-mix(in srgb, var(--accent) 15%, transparent); }
 .shortcut__go { flex: 1; display: flex; align-items: center; gap: 6px; border: none; background: none; text-align: left; padding: 4px 5px; min-width: 0; }
 .shortcut__go span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .shortcut__go kbd { font-family: inherit; font-size: 9px; color: var(--muted); border: 1px solid var(--border); border-radius: 3px; padding: 0 3px; flex-shrink: 0; }

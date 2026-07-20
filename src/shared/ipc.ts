@@ -157,6 +157,9 @@ export interface IpcInvokeMap {
 
   /** Fresh, credential-free picture of the server for a pasted context block. */
   'context:system-summary': { req: { profileId: string }; res: SystemSummary }
+
+  /** Opens another view of the same session set; does not fork state in main. */
+  'window:new': { req: void; res: void }
 }
 
 /**

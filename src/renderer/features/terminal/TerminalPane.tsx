@@ -5,6 +5,7 @@ import { SearchAddon } from '@xterm/addon-search'
 import { WebglAddon } from '@xterm/addon-webgl'
 import '@xterm/xterm/css/xterm.css'
 import { useContextStore } from '../../stores/context.js'
+import { useSettingsStore } from '../../stores/settings.js'
 
 interface Props {
   sessionId: string
@@ -13,6 +14,7 @@ interface Props {
 
 export function TerminalPane({ sessionId, visible }: Props): React.JSX.Element {
   const addContext = useContextStore((s) => s.add)
+  const fontSize = useSettingsStore((s) => s.terminalFontSize)
   const hostRef = useRef<HTMLDivElement>(null)
   const termRef = useRef<Terminal | null>(null)
   const fitRef = useRef<FitAddon | null>(null)
@@ -23,11 +25,17 @@ export function TerminalPane({ sessionId, visible }: Props): React.JSX.Element {
 
     const term = new Terminal({
       fontFamily: 'SFMono-Regular, Menlo, monospace',
-      fontSize: 13,
+      fontSize,
       scrollback: 10_000,
       cursorBlink: true,
       allowProposedApi: true,
-      theme: { background: '#1a1b26', foreground: '#c0caf5', cursor: '#c0caf5' },
+      // Read from CSS rather than hard-coded, so the terminal follows the theme.
+      theme: (() => {
+        const style = getComputedStyle(document.documentElement)
+        const background = style.getPropertyValue('--terminal-bg').trim() || '#1a1b26'
+        const foreground = style.getPropertyValue('--terminal-fg').trim() || '#c0caf5'
+        return { background, foreground, cursor: foreground }
+      })(),
     })
     const fit = new FitAddon()
     const search = new SearchAddon()
@@ -101,7 +109,7 @@ export function TerminalPane({ sessionId, visible }: Props): React.JSX.Element {
       termRef.current = null
       fitRef.current = null
     }
-  }, [sessionId, addContext])
+  }, [sessionId, addContext, fontSize])
 
   // A hidden pane has zero size, so xterm can't measure; refit when it returns.
   useEffect(() => {

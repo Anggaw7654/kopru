@@ -3,6 +3,7 @@ import type { Profile } from '@shared/types/profile.js'
 import { useProfileStore } from '../../stores/profiles.js'
 import { useConnectionStore } from '../../stores/connection.js'
 import { ProfileForm } from './ProfileForm.js'
+import { useSettingsStore } from '../../stores/settings.js'
 
 const STATE_LABEL: Record<string, string> = {
   disconnected: 'Bağlı değil',
@@ -17,6 +18,7 @@ export function ProfileList(): React.JSX.Element {
   const { byProfile, activeProfileId, connect, disconnect, setActive } = useConnectionStore()
   const [editing, setEditing] = useState<Profile | null>(null)
   const [creating, setCreating] = useState(false)
+  const openSettings = useSettingsStore((s) => s.setOpen)
 
   if (creating || editing) {
     return (
@@ -34,6 +36,7 @@ export function ProfileList(): React.JSX.Element {
     <aside className="sidebar">
       <div className="sidebar__head">
         <h1>Köprü</h1>
+        <button type="button" title="Ayarlar" onClick={() => { openSettings(true) }}>⚙</button>
         <button
           type="button"
           onClick={() => {

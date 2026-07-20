@@ -48,6 +48,10 @@ export function FileBrowser({ profile }: Props): React.JSX.Element {
   // Land in the user's home rather than / — that is where their work is.
   useEffect(() => {
     let cancelled = false
+    // Blank the previous server's listing immediately: showing its files under
+    // the new server's name for the duration of a round-trip is a lie the user
+    // could act on.
+    useFileStore.setState({ entries: [], path: '', selected: [], error: null, loading: true })
     void window.kopru
       .invoke('fs:home', { profileId })
       .then(({ path: home }) => {

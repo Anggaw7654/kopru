@@ -1,7 +1,7 @@
 {
   "name": "kopru",
   "version": "0.1.0",
-  "description": "Köprü — AI-assisted SSH control center for macOS",
+  "description": "K\u00f6pr\u00fc \u2014 AI-assisted SSH control center for macOS",
   "main": "./out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
@@ -52,5 +52,48 @@
     "ssh2": "^1.17.0",
     "uplot": "^1.6.32",
     "zustand": "^5.0.14"
+  },
+  "build": {
+    "appId": "com.kaya.kopru",
+    "productName": "K\u00f6pr\u00fc",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "out/**",
+      "package.json"
+    ],
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "category": "public.app-category.developer-tools",
+      "darkModeSupport": true,
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    }
   }
 }

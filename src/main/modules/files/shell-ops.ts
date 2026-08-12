@@ -7,6 +7,7 @@ import type {
 } from '../../../shared/types/files.js'
 import { runOrThrow } from './exec.js'
 import { baseName, shellQuote } from './paths.js'
+import { m } from '../../i18n.js'
 
 /**
  * Operations SFTP cannot express, run over the exec channel.
@@ -44,7 +45,7 @@ export async function chmodRecursive(request: ChmodRequest): Promise<void> {
 }
 
 export async function compress(request: ArchiveRequest): Promise<void> {
-  if (request.sources.length === 0) throw new Error('Sıkıştırılacak öğe seçilmedi.')
+  if (request.sources.length === 0) throw new Error(m('Sıkıştırılacak öğe seçilmedi.'))
 
   // tar -C <parent> <names> keeps the archive free of absolute paths, so
   // extracting it elsewhere doesn't recreate /home/user/... inside the target.
@@ -72,7 +73,7 @@ export async function extract(request: ExtractRequest): Promise<void> {
     // -a picks the decompressor from the extension.
     command = `tar -xaf ${archive} -C ${target}`
   } else {
-    throw new Error('Desteklenmeyen arşiv biçimi. .zip, .tar, .tar.gz, .tar.bz2, .tar.xz açılabilir.')
+    throw new Error(m('Desteklenmeyen arşiv biçimi. .zip, .tar, .tar.gz, .tar.bz2, .tar.xz açılabilir.'))
   }
 
   await runOrThrow(request.profileId, command, 'Arşiv açılamadı')

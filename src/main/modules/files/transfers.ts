@@ -6,6 +6,7 @@ import { broadcast } from '../../ssh/manager.js'
 import { channel } from './sftp.js'
 import { joinPath } from './paths.js'
 import { stat as remoteStat } from './operations.js'
+import { m } from '../../i18n.js'
 
 /**
  * Sequential queue on the dedicated transfer channel.
@@ -155,7 +156,7 @@ export function upload(profileId: string, localPaths: string[], destinationDir: 
           bytesTotal: 0,
           bytesDone: 0,
           state: 'error',
-          error: 'Klasör yüklemesi henüz desteklenmiyor; önce sıkıştırın.',
+          error: m('Klasör yüklemesi henüz desteklenmiyor; önce sıkıştırın.'),
         })
         continue
       }
@@ -188,7 +189,7 @@ export async function download(
         bytesTotal: 0,
         bytesDone: 0,
         state: 'error',
-        error: 'Klasör indirmesi henüz desteklenmiyor; önce sunucuda sıkıştırın.',
+        error: m('Klasör indirmesi henüz desteklenmiyor; önce sunucuda sıkıştırın.'),
       })
       continue
     }

@@ -50,6 +50,7 @@ import type {
   MonitorHistory,
   RestartServiceRequest,
 } from './types/metrics.js'
+import type { Dil } from './i18n.js'
 import type {
   TerminalCreateRequest,
   TerminalData,
@@ -170,6 +171,8 @@ export interface IpcInvokeMap {
 export interface IpcSendMap {
   'terminal:write': TerminalWrite
   'terminal:resize': TerminalResize
+  /** Renderer's interface language, so main's dialogs match the UI. */
+  'dil:degisti': { dil: Dil }
 }
 
 /** Main to renderer, pushed to every window. */

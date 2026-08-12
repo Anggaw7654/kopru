@@ -3,6 +3,7 @@ import type {
   Activity, BloatEntry, HealthReport, PostgresConfig, SlowQuery, UnusedIndex,
 } from '../../../shared/types/postgres.js'
 import { withClient } from './pool.js'
+import { m } from '../../i18n.js'
 
 /** Extension may not be installed; that is reported, never faked. */
 async function slowQueries(
@@ -45,7 +46,7 @@ async function slowQueries(
     // Column names differ before PG 13 (total_time vs total_exec_time).
     return {
       rows: null,
-      note: 'pg_stat_statements okunamadı; sürüm uyumsuz olabilir.',
+      note: m('pg_stat_statements okunamadı; sürüm uyumsuz olabilir.'),
     }
   }
 }

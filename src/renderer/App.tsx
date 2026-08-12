@@ -15,8 +15,10 @@ import { useFileStore } from './stores/files.js'
 import { useMonitorStore } from './stores/monitor.js'
 import { useProfileStore as useProfiles } from './stores/profiles.js'
 import { useTransferStore } from './stores/transfers.js'
+import { useT } from './stores/dil.js'
 
 export function App(): React.JSX.Element {
+  const t = useT()
   const loadProfiles = useProfileStore((s) => s.load)
   const profileError = useProfileStore((s) => s.error)
   const { apply, hydrate, setMismatch, mismatch, setActive, activeProfileId } = useConnectionStore()
@@ -135,13 +137,14 @@ export function App(): React.JSX.Element {
         {profileError !== null && <div className="banner banner--error">{profileError}</div>}
         {mismatch && (
           <div className="banner banner--danger">
-            <strong>Güvenlik uyarısı:</strong> {mismatch.host}:{mismatch.port} sunucusunun kimliği
-            değişti; bağlantı reddedildi. Kayıtlı: <code>{mismatch.pinnedFingerprint}</code> —
+            <strong>{t('Güvenlik uyarısı:')}</strong>{' '}
+            {t('{sunucu} sunucusunun kimliği değişti; bağlantı reddedildi. Kayıtlı:', { sunucu: `${mismatch.host}:${String(mismatch.port)}` })}{' '}
+            <code>{mismatch.pinnedFingerprint}</code> —
             sunulan: <code>{mismatch.presentedFingerprint}</code>
           </div>
         )}
         {activeProfileId === null ? (
-          <div className="empty">Soldan bir sunucu seçip bağlanın.</div>
+          <div className="empty">{t('Soldan bir sunucu seçip bağlanın.')}</div>
         ) : (
           <>
             <div className="view-switch">
@@ -150,14 +153,14 @@ export function App(): React.JSX.Element {
                 className={view === 'files' ? 'view-switch--active' : ''}
                 onClick={() => { setView('files') }}
               >
-                Dosyalar
+                {t('Dosyalar')}
               </button>
               <button
                 type="button"
                 className={view === 'monitor' ? 'view-switch--active' : ''}
                 onClick={() => { setView('monitor') }}
               >
-                İzleme
+                {t('İzleme')}
               </button>
               <button
                 type="button"

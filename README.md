@@ -52,7 +52,8 @@ Ships with light/dark/system themes and multi-window support.
 
 > The server in these captures is a throwaway Linux target brought up purely for
 > the screenshots — every file, container and database row on it is fictional.
-> The interface language is Turkish (see [Status](#status)).
+> These were taken before the English localisation landed, so the labels read
+> Turkish; the app now ships in both languages.
 
 **Files** — remote listing with per-profile shortcuts and recent folders. Browsing
 and transfers run on separate SFTP channels, so a large download never blocks the
@@ -213,12 +214,24 @@ Manual test guides for each development phase are in [`docs/`](docs/) —
 paths that are hard to assert automatically: reconnect behaviour under a dropped
 connection, sudo saves, transfer cancellation, prune guards, read-only enforcement.
 
+## Language
+
+The interface ships in **English and Turkish**. The default follows your OS
+locale — a Turkish system starts in Turkish, everything else starts in English —
+and an explicit choice in *Settings → Language* wins from then on. Native dialogs
+raised from the main process (host key approval, sudo prompt) follow the same
+setting.
+
+Translations live in [`src/shared/i18n-en.ts`](src/shared/i18n-en.ts), keyed by
+the Turkish source string rather than by an invented identifier: call sites stay
+readable, and a missing entry degrades to Turkish instead of printing a raw key
+at the user. `npm run i18n` fails the build if any string used in the code has no
+English entry.
+
 ## Status
 
 Working and in daily use against production servers, but a personal project —
 no support commitments. Issues and pull requests are welcome.
-
-The UI language is **Turkish**. English localisation is not implemented.
 
 ## Licence
 

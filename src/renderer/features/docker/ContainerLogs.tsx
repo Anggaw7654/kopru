@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Container } from '@shared/types/docker.js'
 import { useContextStore } from '../../stores/context.js'
+import { useT } from '../../stores/dil.js'
 
 interface Props {
   profileId: string
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export function ContainerLogs({ profileId, container, onClose }: Props): React.JSX.Element {
+  const t = useT()
   const addContext = useContextStore((s) => s.add)
   const [lines, setLines] = useState<string[]>([])
   const [following, setFollowing] = useState(false)
@@ -77,7 +79,7 @@ export function ContainerLogs({ profileId, container, onClose }: Props): React.J
             checked={following}
             onChange={(e) => { setFollowing(e.target.checked) }}
           />
-          Canlı takip
+          {t('Canlı takip')}
         </label>
         <button
           type="button"
@@ -91,7 +93,7 @@ export function ContainerLogs({ profileId, container, onClose }: Props): React.J
             })
           }}
         >
-          Claude’a gönder
+          {t('Claude’a gönder')}
         </button>
         <button type="button" onClick={onClose}>Kapat</button>
       </header>
@@ -105,8 +107,8 @@ export function ContainerLogs({ profileId, container, onClose }: Props): React.J
 
       <footer className="logs__meta">
         {search === ''
-          ? `${String(lines.length)} satır`
-          : `${String(visible.length)} / ${String(lines.length)} satır eşleşti`}
+          ? t('{n} satır', { n: lines.length })
+          : t('{a} / {b} satır eşleşti', { a: visible.length, b: lines.length })}
       </footer>
     </div>
   )

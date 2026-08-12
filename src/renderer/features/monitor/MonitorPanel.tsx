@@ -6,6 +6,7 @@ import { formatSize } from '../files/format.js'
 import { MetricChart } from './MetricChart.js'
 import { ServiceList } from './ServiceList.js'
 import { MonitorSettings } from './MonitorSettings.js'
+import { useT } from '../../stores/dil.js'
 
 interface Props {
   profile: Profile
@@ -20,6 +21,7 @@ function percent(used: number, total: number): number {
 }
 
 export function MonitorPanel({ profile }: Props): React.JSX.Element {
+  const t = useT()
   const snapshots = useMonitorStore((s) => s.byProfile[profile.id]) ?? NO_SNAPSHOTS
   const hydrate = useMonitorStore((s) => s.hydrate)
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -66,11 +68,11 @@ export function MonitorPanel({ profile }: Props): React.JSX.Element {
   return (
     <div className="monitor">
       <div className="monitor__bar">
-        {stale && <span className="badge">bağlantı yok — veri bekleniyor</span>}
+        {stale && <span className="badge">{t('bağlantı yok — veri bekleniyor')}</span>}
         <span className="monitor__meta">
-          {String(latest.cpu.cores)} çekirdek · {String(latest.sessions.length)} oturum
+          {t('{cekirdek} çekirdek · {oturum} oturum', { cekirdek: latest.cpu.cores, oturum: latest.sessions.length })}
         </span>
-        <button type="button" onClick={() => { setSettingsOpen(true) }}>Ayarlar</button>
+        <button type="button" onClick={() => { setSettingsOpen(true) }}>{t('Ayarlar')}</button>
       </div>
 
       <div className="cards">
@@ -79,11 +81,11 @@ export function MonitorPanel({ profile }: Props): React.JSX.Element {
           <strong className={latest.cpu.percent !== null && latest.cpu.percent > 85 ? 'hot' : ''}>
             {latest.cpu.percent === null ? '—' : `%${latest.cpu.percent.toFixed(0)}`}
           </strong>
-          <span className="card__sub">yük {latest.cpu.load1.toFixed(2)}</span>
+          <span className="card__sub">{t('yük {n}', { n: latest.cpu.load1.toFixed(2) })}</span>
         </div>
 
         <div className="card">
-          <span className="card__label">Bellek</span>
+          <span className="card__label">{t('Bellek')}</span>
           <strong className={memoryUsedPercent > 85 ? 'hot' : ''}>
             %{memoryUsedPercent.toFixed(0)}
           </strong>
@@ -111,12 +113,12 @@ export function MonitorPanel({ profile }: Props): React.JSX.Element {
             <strong className={percent(primaryDisk.usedBytes, primaryDisk.totalBytes) > 85 ? 'hot' : ''}>
               %{percent(primaryDisk.usedBytes, primaryDisk.totalBytes).toFixed(0)}
             </strong>
-            <span className="card__sub">{formatSize(primaryDisk.availableBytes)} boş</span>
+            <span className="card__sub">{t('{boyut} boş', { boyut: formatSize(primaryDisk.availableBytes) })}</span>
           </div>
         )}
 
         <div className="card">
-          <span className="card__label">SSH oturumu</span>
+          <span className="card__label">{t('SSH oturumu')}</span>
           <strong>{String(latest.sessions.length)}</strong>
           <span className="card__sub">
             {latest.sessions.map((s) => s.user).slice(0, 3).join(', ') || '—'}
@@ -125,11 +127,11 @@ export function MonitorPanel({ profile }: Props): React.JSX.Element {
 
         {latest.nginx && (
           <div className="card">
-            <span className="card__label">Tekil IP ({String(latest.nginx.windowMinutes)} dk)</span>
+            <span className="card__label">{t('Tekil IP ({dk} dk)', { dk: latest.nginx.windowMinutes })}</span>
             <strong>
-              {latest.nginx.partial ? 'en az ' : ''}{String(latest.nginx.uniqueIps)}
+              {latest.nginx.partial ? `${t('en az')} ` : ''}{String(latest.nginx.uniqueIps)}
             </strong>
-            <span className="card__sub">{latest.nginx.partial ? 'log penceresi yetmedi' : 'nginx'}</span>
+            <span className="card__sub">{latest.nginx.partial ? t('log penceresi yetmedi') : 'nginx'}</span>
           </div>
         )}
 
@@ -141,8 +143,8 @@ export function MonitorPanel({ profile }: Props): React.JSX.Element {
             </strong>
             <span className="card__sub">
               {latest.docker.unhealthy > 0
-                ? `${String(latest.docker.unhealthy)} konteyner sağlıksız`
-                : 'çalışan / toplam'}
+                ? t('{n} konteyner sağlıksız', { n: latest.docker.unhealthy })
+                : t('çalışan / toplam')}
             </span>
           </div>
         )}
@@ -153,8 +155,8 @@ export function MonitorPanel({ profile }: Props): React.JSX.Element {
             <strong>{String(latest.postgres.connections)}</strong>
             <span className="card__sub">
               {latest.postgres.slowQueries > 0
-                ? `${String(latest.postgres.slowQueries)} yavaş sorgu`
-                : 'bağlantı'}
+                ? t('{n} yavaş sorgu', { n: latest.postgres.slowQueries })
+                : t('bağlantı')}
             </span>
           </div>
         )}
@@ -162,23 +164,23 @@ export function MonitorPanel({ profile }: Props): React.JSX.Element {
 
       <div className="charts">
         <MetricChart
-          title="CPU kullanımı (son 15 dk)"
+          title={t('CPU kullanımı (son 15 dk)')}
           timestamps={chartData.timestamps}
           range={[0, 100]}
           unit="%"
           series={[{ label: 'CPU', values: chartData.cpu, color: '#7aa2f7' }]}
         />
         <MetricChart
-          title="Bellek kullanımı (son 15 dk)"
+          title={t('Bellek kullanımı (son 15 dk)')}
           timestamps={chartData.timestamps}
           range={[0, 100]}
           unit="%"
-          series={[{ label: 'Bellek', values: chartData.memory, color: '#9ece6a' }]}
+          series={[{ label: t('Bellek'), values: chartData.memory, color: '#9ece6a' }]}
         />
         <MetricChart
-          title="Yük ortalaması (1 dk)"
+          title={t('Yük ortalaması (1 dk)')}
           timestamps={chartData.timestamps}
-          series={[{ label: 'Yük', values: chartData.load, color: '#e0af68' }]}
+          series={[{ label: t('Yük'), values: chartData.load, color: '#e0af68' }]}
         />
       </div>
 

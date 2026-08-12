@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import type { Shortcut } from '@shared/types/files.js'
 import { useProfileStore } from '../../stores/profiles.js'
 import { usePrompt } from '../../components/PromptDialog.js'
+import { useT } from '../../stores/dil.js'
 
 interface Props {
   profileId: string
@@ -20,6 +21,7 @@ function newId(): string {
 export function ShortcutList({
   profileId, shortcuts, currentPath, onNavigate,
 }: Props): React.JSX.Element {
+  const t = useT()
   const reloadProfiles = useProfileStore((s) => s.load)
   const [ask, promptDialog] = usePrompt()
 
@@ -54,12 +56,12 @@ export function ShortcutList({
   const add = (): void => {
     if (currentPath === '') return
     if (shortcuts.some((s) => s.path === currentPath)) {
-      window.alert('Bu klasör zaten kısayollarda.')
+      window.alert(t('Bu klasör zaten kısayollarda.'))
       return
     }
     const suggested = currentPath.split('/').filter(Boolean).at(-1) ?? currentPath
     void ask({
-      title: 'Kısayol adı',
+      title: t('Kısayol adı'),
       detail: currentPath,
       defaultValue: suggested,
       confirmLabel: 'Ekle',
@@ -93,13 +95,13 @@ export function ShortcutList({
     <>
       {promptDialog}
       <h4 className="side-head">
-        Kısayollar
-        <button type="button" onClick={add} title={`Bu klasörü ekle: ${currentPath}`}>+</button>
+        {t('Kısayollar')}
+        <button type="button" onClick={add} title={t('Bu klasörü ekle: {yol}', { yol: currentPath })}>+</button>
       </h4>
 
       {shortcuts.length === 0 && (
         <p className="hint">
-          Bir proje klasörüne gidip <strong>+</strong> deyin; bir daha aramanız gerekmez.
+          {t('Bir proje klasörüne gidip')} <strong>+</strong> {t('deyin; bir daha aramanız gerekmez.')}
         </p>
       )}
 
@@ -119,16 +121,16 @@ export function ShortcutList({
           </button>
 
           <div className="shortcut__tools">
-            <button type="button" title="Yukarı taşı" onClick={() => { move(index, -1) }}>↑</button>
-            <button type="button" title="Aşağı taşı" onClick={() => { move(index, 1) }}>↓</button>
-            <button type="button" title="Yeniden adlandır" onClick={() => { rename(shortcut) }}>✎</button>
+            <button type="button" title={t('Yukarı taşı')} onClick={() => { move(index, -1) }}>↑</button>
+            <button type="button" title={t('Aşağı taşı')} onClick={() => { move(index, 1) }}>↓</button>
+            <button type="button" title={t('Yeniden adlandır')} onClick={() => { rename(shortcut) }}>✎</button>
             <button
               type="button"
-              title="Kısayolu kaldır"
+              title={t('Kısayolu kaldır')}
               onClick={() => {
                 // Only the bookmark goes; say so, because "sil" next to a folder
                 // name reads like it deletes the folder.
-                if (!window.confirm(`“${shortcut.label}” kısayolu kaldırılacak.\n\nKlasörün kendisi silinmez.`)) return
+                if (!window.confirm(t('“{ad}” kısayolu kaldırılacak.\n\nKlasörün kendisi silinmez.', { ad: shortcut.label }))) return
                 persist(shortcuts.filter((s) => s.id !== shortcut.id))
               }}
             >

@@ -1,37 +1,61 @@
 import { useSettingsStore } from '../../stores/settings.js'
 import type { ThemeChoice } from '../../stores/settings.js'
+import { useDilStore, useT } from '../../stores/dil.js'
+import { DILLER } from '@shared/i18n.js'
 
-const THEMES: { value: ThemeChoice; label: string }[] = [
+/** Etiketler sözlük anahtarıdır; metin `t()` ile çözülür. */
+const TEMALAR: { value: ThemeChoice; label: string }[] = [
   { value: 'system', label: 'Sisteme uy' },
   { value: 'dark', label: 'Koyu' },
   { value: 'light', label: 'Açık' },
 ]
 
+/** Dil adları KENDİ dillerinde yazılır — bir kullanıcı anlamadığı bir
+ *  arayüzde kendi dilini ararken 'Turkish' değil 'Türkçe' arar. */
+const DIL_ADI: Record<string, string> = { tr: 'Türkçe', en: 'English' }
+
 export function SettingsPanel(): React.JSX.Element {
   const { theme, setTheme, terminalFontSize, setTerminalFontSize, setOpen } = useSettingsStore()
+  const { dil, ayarla: dilAyarla } = useDilStore()
+  const t = useT()
 
   return (
     <div className="modal-backdrop" onClick={() => { setOpen(false) }}>
       <div className="modal modal--wide" onClick={(e) => { e.stopPropagation() }}>
-        <h3>Ayarlar</h3>
+        <h3>{t('Ayarlar')}</h3>
 
-        <h4>Görünüm</h4>
+        <h4>{t('Dil')}</h4>
         <div className="row">
-          {THEMES.map((option) => (
+          {DILLER.map((secenek) => (
+            <button
+              key={secenek}
+              type="button"
+              className={dil === secenek ? 'view-switch--active' : ''}
+              onClick={() => { dilAyarla(secenek) }}
+            >
+              {DIL_ADI[secenek]}
+            </button>
+          ))}
+        </div>
+        <p className="hint">{t('Ana süreçteki pencereler de bu dili kullanır.')}</p>
+
+        <h4>{t('Görünüm')}</h4>
+        <div className="row">
+          {TEMALAR.map((option) => (
             <button
               key={option.value}
               type="button"
               className={theme === option.value ? 'view-switch--active' : ''}
               onClick={() => { setTheme(option.value) }}
             >
-              {option.label}
+              {t(option.label)}
             </button>
           ))}
         </div>
 
         <h4>Terminal</h4>
         <label>
-          Yazı boyutu
+          {t('Yazı boyutu')}
           <input
             type="number"
             min={9}
@@ -42,26 +66,23 @@ export function SettingsPanel(): React.JSX.Element {
             }}
           />
         </label>
-        <p className="hint">Yeni açılan terminal sekmelerinde geçerli olur.</p>
+        <p className="hint">{t('Yeni açılan terminal sekmelerinde geçerli olur.')}</p>
 
-        <h4>Pencere</h4>
+        <h4>{t('Pencere')}</h4>
         <button type="button" onClick={() => void window.kopru.invoke('window:new')}>
-          Yeni pencere aç
+          {t('Yeni pencere aç')}
         </button>
         <p className="hint">
-          Oturumlar ana süreçte yaşadığı için ikinci pencere aynı bağlantıları görür.
-          Birini kapatmak oturumları sonlandırmaz.
+          {t('Oturumlar ana süreçte yaşadığı için ikinci pencere aynı bağlantıları görür. Birini kapatmak oturumları sonlandırmaz.')}
         </p>
 
-        <h4>Sunucuya özel ayarlar</h4>
+        <h4>{t('Sunucuya özel ayarlar')}</h4>
         <p className="hint">
-          İzleme aralığı, eşikler ve izlenen servisler her sunucu için ayrıdır —
-          İzleme sekmesindeki <strong>Ayarlar</strong> düğmesinden değiştirin.
-          PostgreSQL bağlantısı ise profil düzenleme ekranındadır.
+          {t('İzleme aralığı, eşikler ve izlenen servisler her sunucu için ayrıdır — İzleme sekmesindeki Ayarlar düğmesinden değiştirin. PostgreSQL bağlantısı ise profil düzenleme ekranındadır.')}
         </p>
 
         <div className="row">
-          <button type="button" onClick={() => { setOpen(false) }}>Kapat</button>
+          <button type="button" onClick={() => { setOpen(false) }}>{t('Kapat')}</button>
         </div>
       </div>
     </div>

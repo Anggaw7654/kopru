@@ -1,4 +1,5 @@
 import type { DangerAssessment, DangerKind } from '@shared/types/postgres.js'
+import { useT } from '../../stores/dil.js'
 
 interface Props {
   assessment: DangerAssessment
@@ -26,6 +27,7 @@ export function DangerousQueryDialog({
   onConfirm,
   onCancel,
 }: Props): React.JSX.Element {
+  const t = useT()
   return (
     <div className="modal-backdrop" onClick={onCancel}>
       <div
@@ -34,29 +36,29 @@ export function DangerousQueryDialog({
           e.stopPropagation()
         }}
       >
-        <h3>Bu sorgu veri kaybettirebilir</h3>
+        <h3>{t('Bu sorgu veri kaybettirebilir')}</h3>
 
         {assessment.kinds.length === 0 ? (
           <p className="error">
-            Sorgu incelenemedi. Ne yapacağı doğrulanamadığı için onayınız isteniyor.
+            {t('Sorgu incelenemedi. Ne yapacağı doğrulanamadığı için onayınız isteniyor.')}
           </p>
         ) : (
           <ul className="danger-list">
             {assessment.kinds.map((kind) => (
-              <li key={kind}>{KIND_LABEL[kind]}</li>
+              <li key={kind}>{t(KIND_LABEL[kind])}</li>
             ))}
           </ul>
         )}
 
         <p className="prune-size">
-          Etkilenecek satır:{' '}
+          {t('Etkilenecek satır:')}{' '}
           <strong>
             {assessment.estimatedRows === null
-              ? 'bilinmiyor'
-              : `~${assessment.estimatedRows.toLocaleString('tr-TR')}`}
+              ? t('bilinmiyor')
+              : `~${assessment.estimatedRows.toLocaleString()}`}
           </strong>
           {assessment.estimatedRows !== null && (
-            <em className="hint"> (planlayıcı tahmini, kesin sayı değil)</em>
+            <em className="hint"> {t('(planlayıcı tahmini, kesin sayı değil)')}</em>
           )}
         </p>
 
@@ -64,10 +66,10 @@ export function DangerousQueryDialog({
 
         <div className="row">
           <button type="button" className="danger" onClick={onConfirm}>
-            Anladım, çalıştır
+            {t('Anladım, çalıştır')}
           </button>
           <button type="button" onClick={onCancel}>
-            Vazgeç
+            {t('Vazgeç')}
           </button>
         </div>
       </div>

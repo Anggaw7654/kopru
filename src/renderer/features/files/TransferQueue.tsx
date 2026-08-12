@@ -1,5 +1,6 @@
 import { useTransferStore } from '../../stores/transfers.js'
 import { formatSize } from './format.js'
+import { useT } from '../../stores/dil.js'
 
 const STATE_LABEL: Record<string, string> = {
   queued: 'Sırada', running: 'Aktarılıyor', done: 'Bitti',
@@ -7,6 +8,7 @@ const STATE_LABEL: Record<string, string> = {
 }
 
 export function TransferQueue(): React.JSX.Element | null {
+  const t = useT()
   const { items, open, setOpen, cancel, clearFinished } = useTransferStore()
   if (items.length === 0) return null
 
@@ -15,7 +17,7 @@ export function TransferQueue(): React.JSX.Element | null {
   return (
     <div className={`transfers ${open ? 'transfers--open' : ''}`}>
       <button type="button" className="transfers__toggle" onClick={() => { setOpen(!open) }}>
-        Aktarımlar {active > 0 ? `(${String(active)} etkin)` : `(${String(items.length)})`}
+        {t('Aktarımlar')} {active > 0 ? t('({n} etkin)', { n: active }) : `(${String(items.length)})`}
         <span>{open ? '▾' : '▴'}</span>
       </button>
 
@@ -30,7 +32,7 @@ export function TransferQueue(): React.JSX.Element | null {
                 <div className="transfer__head">
                   <span>{transfer.direction === 'upload' ? '↑' : '↓'} {transfer.name}</span>
                   <span className={`transfer__state transfer__state--${transfer.state}`}>
-                    {STATE_LABEL[transfer.state] ?? transfer.state}
+                    {t(STATE_LABEL[transfer.state] ?? transfer.state)}
                   </span>
                 </div>
                 {transfer.state === 'running' && (
@@ -43,7 +45,7 @@ export function TransferQueue(): React.JSX.Element | null {
                 )}
                 {transfer.error !== undefined && <span className="error">{transfer.error}</span>}
                 {(transfer.state === 'running' || transfer.state === 'queued') && (
-                  <button type="button" onClick={() => void cancel(transfer.id)}>İptal</button>
+                  <button type="button" onClick={() => void cancel(transfer.id)}>{t('İptal')}</button>
                 )}
               </div>
             )

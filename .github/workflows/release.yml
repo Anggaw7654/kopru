@@ -37,6 +37,9 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Çeviri kapsamı
+        run: npm run i18n
+
       - name: Build and package
         run: npx electron-vite build && npx electron-builder --${{ matrix.platform }} --publish never
         env:

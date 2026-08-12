@@ -4,8 +4,10 @@ import { useProfileStore } from '../../stores/profiles.js'
 import { useConnectionStore } from '../../stores/connection.js'
 import { ProfileForm } from './ProfileForm.js'
 import { useSettingsStore } from '../../stores/settings.js'
+import { useT } from '../../stores/dil.js'
 
-const STATE_LABEL: Record<string, string> = {
+/** Durum kodları çeviri sözlüğünün ANAHTARLARI; metin `t()` ile çözülür. */
+const DURUM_METNI: Record<string, string> = {
   disconnected: 'Bağlı değil',
   connecting: 'Bağlanıyor…',
   connected: 'Bağlı',
@@ -19,6 +21,7 @@ export function ProfileList(): React.JSX.Element {
   const [editing, setEditing] = useState<Profile | null>(null)
   const [creating, setCreating] = useState(false)
   const openSettings = useSettingsStore((s) => s.setOpen)
+  const t = useT()
 
   if (creating || editing) {
     return (
@@ -35,19 +38,19 @@ export function ProfileList(): React.JSX.Element {
   return (
     <aside className="sidebar">
       <div className="sidebar__head">
-        <h1>Köprü</h1>
-        <button type="button" title="Ayarlar" onClick={() => { openSettings(true) }}>⚙</button>
+        <h1>{t('Köprü')}</h1>
+        <button type="button" title={t('Ayarlar')} onClick={() => { openSettings(true) }}>⚙</button>
         <button
           type="button"
           onClick={() => {
             setCreating(true)
           }}
         >
-          + Sunucu
+          {t('+ Sunucu')}
         </button>
       </div>
 
-      {profiles.length === 0 && <p className="hint">Henüz sunucu eklenmedi.</p>}
+      {profiles.length === 0 && <p className="hint">{t('Henüz sunucu eklenmedi.')}</p>}
 
       <ul className="profile-list">
         {profiles.map((profile) => {
@@ -69,8 +72,8 @@ export function ProfileList(): React.JSX.Element {
                 {profile.username}@{profile.host}:{profile.port}
               </span>
               <span className={`profile__state profile__state--${state}`}>
-                {STATE_LABEL[state] ?? state}
-                {snapshot?.attempt ? ` (${String(snapshot.attempt)}. deneme)` : ''}
+                {t(DURUM_METNI[state] ?? state)}
+                {snapshot?.attempt ? ` ${t('({n}. deneme)', { n: snapshot.attempt })}` : ''}
               </span>
               {snapshot?.message !== undefined && (
                 <span className="profile__message">{snapshot.message}</span>
@@ -85,7 +88,7 @@ export function ProfileList(): React.JSX.Element {
                       void disconnect(profile.id)
                     }}
                   >
-                    Kes
+                    {t('Kes')}
                   </button>
                 ) : (
                   <button
@@ -95,7 +98,7 @@ export function ProfileList(): React.JSX.Element {
                       void connect(profile.id)
                     }}
                   >
-                    Bağlan
+                    {t('Bağlan')}
                   </button>
                 )}
                 <button
@@ -105,7 +108,7 @@ export function ProfileList(): React.JSX.Element {
                     setEditing(profile)
                   }}
                 >
-                  Düzenle
+                  {t('Düzenle')}
                 </button>
                 <button
                   type="button"
@@ -114,14 +117,14 @@ export function ProfileList(): React.JSX.Element {
                     e.stopPropagation()
                     if (
                       window.confirm(
-                        `“${profile.name}” profilini silmek istediğinize emin misiniz?`,
+                        t('“{ad}” profilini silmek istediğinize emin misiniz?', { ad: profile.name }),
                       )
                     ) {
                       void remove(profile.id)
                     }
                   }}
                 >
-                  Sil
+                  {t('Sil')}
                 </button>
               </div>
             </li>

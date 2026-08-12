@@ -10,6 +10,7 @@ import type {
 } from '../../../shared/types/files.js'
 import { channel } from './sftp.js'
 import { joinPath } from './paths.js'
+import { m } from '../../i18n.js'
 
 /** POSIX file-type bits, masked out of st_mode. */
 const S_IFMT = 0o170000
@@ -157,7 +158,7 @@ export async function rename(request: RenameRequest): Promise<void> {
 export async function chmod(request: ChmodRequest): Promise<void> {
   if (request.recursive) {
     // Handled by shell-ops; SFTP has no recursive chmod.
-    throw new Error('Özyinelemeli izin değişikliği kabuk üzerinden yapılır.')
+    throw new Error(m('Özyinelemeli izin değişikliği kabuk üzerinden yapılır.'))
   }
   const sftp = await channel(request.profileId)
   await new Promise<void>((resolve, reject) => {

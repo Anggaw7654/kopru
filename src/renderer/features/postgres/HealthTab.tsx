@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { HealthReport } from '@shared/types/postgres.js'
 import { formatSize } from '../files/format.js'
+import { useT } from '../../stores/dil.js'
 
 interface Props {
   profileId: string
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export function HealthTab({ profileId, database }: Props): React.JSX.Element {
+  const t = useT()
   const [report, setReport] = useState<HealthReport | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -26,8 +28,8 @@ export function HealthTab({ profileId, database }: Props): React.JSX.Element {
 
   const stopStatement = async (pid: number, hard: boolean): Promise<void> => {
     const question = hard
-      ? `${String(pid)} numaralı oturum tamamen sonlandırılacak. Çalışan işlem geri alınır.\n\nDevam edilsin mi?`
-      : `${String(pid)} numaralı oturumun çalışan sorgusu durdurulacak. Oturum açık kalır.\n\nDevam edilsin mi?`
+      ? t('{pid} numaralı oturum tamamen sonlandırılacak. Çalışan işlem geri alınır.\n\nDevam edilsin mi?', { pid })
+      : t('{pid} numaralı oturumun çalışan sorgusu durdurulacak. Oturum açık kalır.\n\nDevam edilsin mi?', { pid })
     if (!window.confirm(question)) return
     try {
       await window.kopru.invoke('pg:cancel-query', { profileId, database, pid, terminate: hard })
@@ -38,7 +40,7 @@ export function HealthTab({ profileId, database }: Props): React.JSX.Element {
   }
 
   if (error !== null) return <div className="banner banner--error">{error}</div>
-  if (report === null) return <p className="hint">Yükleniyor…</p>
+  if (report === null) return <p className="hint">{t('Yükleniyor…')}</p>
 
   const saturation = report.connections.max > 0
     ? (report.connections.used / report.connections.max) * 100
@@ -48,7 +50,7 @@ export function HealthTab({ profileId, database }: Props): React.JSX.Element {
     <div className="health">
       <div className="cards">
         <div className="card">
-          <span className="card__label">Bağlantı</span>
+          <span className="card__label">{t('Bağlantı')}</span>
           <strong className={saturation > 80 ? 'hot' : ''}>
             {String(report.connections.used)} / {String(report.connections.max)}
           </strong>
@@ -64,7 +66,7 @@ export function HealthTab({ profileId, database }: Props): React.JSX.Element {
           <strong className={report.activity.some((a) => a.waitEvent !== null) ? 'hot' : ''}>
             {String(report.activity.filter((a) => a.waitEvent !== null).length)}
           </strong>
-          <span className="card__sub">kilit / G-Ç beklemesi</span>
+          <span className="card__sub">{t('kilit / G-Ç beklemesi')}</span>
         </div>
       </div>
 
@@ -72,7 +74,7 @@ export function HealthTab({ profileId, database }: Props): React.JSX.Element {
         <h4>Oturumlar</h4>
         <table className="file-table">
           <thead>
-            <tr><th>PID</th><th>Kullanıcı</th><th>Durum</th><th>Süre</th><th>Bekleme</th><th>Sorgu</th><th /></tr>
+            <tr><th>PID</th><th>{t('Kullanıcı')}</th><th>Durum</th><th>{t('Süre')}</th><th>Bekleme</th><th>Sorgu</th><th /></tr>
           </thead>
           <tbody>
             {report.activity.map((row) => (
@@ -97,17 +99,17 @@ export function HealthTab({ profileId, database }: Props): React.JSX.Element {
             ))}
           </tbody>
         </table>
-        {report.activity.length === 0 && <p className="hint">Başka oturum yok.</p>}
+        {report.activity.length === 0 && <p className="hint">{t('Başka oturum yok.')}</p>}
       </div>
 
       <div className="section">
-        <h4>En yavaş sorgular</h4>
+        <h4>{t('En yavaş sorgular')}</h4>
         {report.slowQueries === null ? (
           <pre className="note">{report.slowQueryNote}</pre>
         ) : (
           <table className="file-table">
             <thead>
-              <tr><th>Sorgu</th><th>Çağrı</th><th>Toplam</th><th>Ortalama</th></tr>
+              <tr><th>Sorgu</th><th>{t('Çağrı')}</th><th>Toplam</th><th>Ortalama</th></tr>
             </thead>
             <tbody>
               {report.slowQueries.map((row) => (
@@ -124,10 +126,10 @@ export function HealthTab({ profileId, database }: Props): React.JSX.Element {
       </div>
 
       <div className="section">
-        <h4>Şişkin tablolar</h4>
-        {report.bloat.length === 0 ? <p className="hint">Kayda değer şişkinlik yok.</p> : (
+        <h4>{t('Şişkin tablolar')}</h4>
+        {report.bloat.length === 0 ? <p className="hint">{t('Kayda değer şişkinlik yok.')}</p> : (
           <table className="file-table">
-            <thead><tr><th>Tablo</th><th>Ölü satır</th><th>Canlı satır</th><th>Oran</th></tr></thead>
+            <thead><tr><th>Tablo</th><th>{t('Ölü satır')}</th><th>{t('Canlı satır')}</th><th>Oran</th></tr></thead>
             <tbody>
               {report.bloat.map((row) => (
                 <tr key={row.table}>
@@ -143,11 +145,11 @@ export function HealthTab({ profileId, database }: Props): React.JSX.Element {
       </div>
 
       <div className="section">
-        <h4>Hiç kullanılmayan indeksler</h4>
+        <h4>{t('Hiç kullanılmayan indeksler')}</h4>
         {report.unusedIndexes.length === 0 ? <p className="hint">Yok.</p> : (
           <>
             <table className="file-table">
-              <thead><tr><th>Tablo</th><th>İndeks</th><th>Boyut</th></tr></thead>
+              <thead><tr><th>Tablo</th><th>{t('İndeks')}</th><th>Boyut</th></tr></thead>
               <tbody>
                 {report.unusedIndexes.map((row) => (
                   <tr key={row.index}>

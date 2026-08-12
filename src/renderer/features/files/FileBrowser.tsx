@@ -14,6 +14,7 @@ import { ShortcutList } from './ShortcutList.js'
 import { usePrompt } from '../../components/PromptDialog.js'
 import { useContextStore } from '../../stores/context.js'
 import { formatDateTime, formatMode, formatSize } from './format.js'
+import { useT } from '../../stores/dil.js'
 
 interface Props {
   profile: Profile
@@ -33,6 +34,7 @@ function parentOf(path: string): string {
 }
 
 export function FileBrowser({ profile }: Props): React.JSX.Element {
+  const t = useT()
   const profileId = profile.id
   const store = useFileStore()
   const { path, entries, selected, loading, error, showHidden, recents } = store
@@ -156,11 +158,11 @@ export function FileBrowser({ profile }: Props): React.JSX.Element {
       const target = entry.kind === 'directory' ? entry.path : parentOf(entry.path)
       const existing = profile.shortcuts
       if (existing.some((shortcut) => shortcut.path === target)) {
-        window.alert('Bu klasör zaten kısayollarda.')
+        window.alert(t('Bu klasör zaten kısayollarda.'))
         return
       }
       void ask({
-        title: 'Kısayol adı',
+        title: t('Kısayol adı'),
         detail: target,
         defaultValue: target.split('/').filter(Boolean).at(-1) ?? target,
         confirmLabel: 'Ekle',
@@ -177,17 +179,17 @@ export function FileBrowser({ profile }: Props): React.JSX.Element {
     },
     remove: (entry: DirEntry) => {
       const targets = selected.length > 1 && selected.includes(entry.path) ? selected : [entry.path]
-      const label = targets.length > 1 ? `${String(targets.length)} öğe` : entry.name
-      if (!window.confirm(`${label} kalıcı olarak silinecek. Emin misiniz?\n\nBu işlem geri alınamaz.`)) return
+      const label = targets.length > 1 ? t('{n} öğe', { n: targets.length }) : entry.name
+      if (!window.confirm(t('{ad} kalıcı olarak silinecek. Emin misiniz?\n\nBu işlem geri alınamaz.', { ad: label }))) return
       window.kopru.invoke('fs:delete', { profileId, paths: targets }).then(refresh).catch(fail)
     },
     compress: (entry: DirEntry) => {
       const targets = selected.length > 1 && selected.includes(entry.path) ? selected : [entry.path]
       void ask({
-        title: 'Arşiv adı',
+        title: t('Arşiv adı'),
         detail: path,
         defaultValue: `${entry.name}.tar.gz`,
-        confirmLabel: 'Sıkıştır',
+        confirmLabel: t('Sıkıştır'),
       }).then((name) => {
         if (name === null) return
         window.kopru
@@ -258,7 +260,7 @@ export function FileBrowser({ profile }: Props): React.JSX.Element {
         <Breadcrumb path={path} onNavigate={(p) => { void store.navigate(profileId, p) }} />
         <button type="button" onClick={refresh}>Yenile</button>
         <button type="button" onClick={() => { void store.toggleHidden(profileId) }}>
-          {showHidden ? 'Gizlileri sakla' : 'Gizlileri göster'}
+          {showHidden ? t('Gizlileri sakla') : t('Gizlileri göster')}
         </button>
         <button
           type="button"
@@ -272,7 +274,7 @@ export function FileBrowser({ profile }: Props): React.JSX.Element {
             })
           }}
         >
-          + Klasör
+          {t('+ Klasör')}
         </button>
 
       </div>
@@ -286,7 +288,7 @@ export function FileBrowser({ profile }: Props): React.JSX.Element {
             onNavigate={(target) => { void store.navigate(profileId, target) }}
           />
 
-          <h4>Son klasörler</h4>
+          <h4>{t('Son klasörler')}</h4>
           {recents.map((recent) => (
             <button key={recent} type="button" className="side-link" onClick={() => { void store.navigate(profileId, recent) }}>
               {recent.split('/').pop() || '/'}
@@ -302,11 +304,11 @@ export function FileBrowser({ profile }: Props): React.JSX.Element {
           onDrop={onDrop}
         >
           {error !== null && <div className="banner banner--error">{error}</div>}
-          {loading && <p className="hint">Yükleniyor…</p>}
+          {loading && <p className="hint">{t('Yükleniyor…')}</p>}
 
           <table className="file-table">
             <thead>
-              <tr><th>Ad</th><th>Boyut</th><th>Değiştirilme</th><th>İzinler</th></tr>
+              <tr><th>Ad</th><th>Boyut</th><th>{t('Değiştirilme')}</th><th>{t('İzinler')}</th></tr>
             </thead>
             <tbody>
               {entries.map((entry) => (
@@ -338,7 +340,7 @@ export function FileBrowser({ profile }: Props): React.JSX.Element {
             </tbody>
           </table>
 
-          {!loading && entries.length === 0 && <p className="hint">Bu klasör boş.</p>}
+          {!loading && entries.length === 0 && <p className="hint">{t('Bu klasör boş.')}</p>}
         </div>
       </div>
 
@@ -346,22 +348,22 @@ export function FileBrowser({ profile }: Props): React.JSX.Element {
 
       {menu && (
         <div className="context-menu" style={{ left: menu.x, top: menu.y }} onClick={(e) => { e.stopPropagation() }}>
-          <button type="button" onClick={() => { activate(menu.entry); setMenu(null) }}>Aç</button>
-          <button type="button" onClick={() => { setQuickLook(menu.entry); setMenu(null) }}>Önizle</button>
+          <button type="button" onClick={() => { activate(menu.entry); setMenu(null) }}>{t('Aç')}</button>
+          <button type="button" onClick={() => { setQuickLook(menu.entry); setMenu(null) }}>{t('Önizle')}</button>
           <button type="button" onClick={() => { action.addShortcut(menu.entry); setMenu(null) }}>
-            Kısayol olarak ekle
+            {t('Kısayol olarak ekle')}
           </button>
           <button type="button" onClick={() => { action.download(menu.entry); setMenu(null) }}>Mac’e indir</button>
           <hr />
-          <button type="button" onClick={() => { action.rename(menu.entry); setMenu(null) }}>Yeniden adlandır</button>
-          <button type="button" onClick={() => { setPermissions(menu.entry); setMenu(null) }}>İzinler…</button>
-          <button type="button" onClick={() => { action.compress(menu.entry); setMenu(null) }}>Sıkıştır…</button>
+          <button type="button" onClick={() => { action.rename(menu.entry); setMenu(null) }}>{t('Yeniden adlandır')}</button>
+          <button type="button" onClick={() => { setPermissions(menu.entry); setMenu(null) }}>{t('İzinler…')}</button>
+          <button type="button" onClick={() => { action.compress(menu.entry); setMenu(null) }}>{t('Sıkıştır…')}</button>
           {/\.(zip|tar|tar\.gz|tgz|tar\.bz2|tar\.xz)$/i.test(menu.entry.name) && (
-            <button type="button" onClick={() => { action.extract(menu.entry); setMenu(null) }}>Buraya çıkart</button>
+            <button type="button" onClick={() => { action.extract(menu.entry); setMenu(null) }}>{t('Buraya çıkart')}</button>
           )}
-          <button type="button" onClick={() => { action.openTerminal(menu.entry); setMenu(null) }}>Terminalde aç</button>
+          <button type="button" onClick={() => { action.openTerminal(menu.entry); setMenu(null) }}>{t('Terminalde aç')}</button>
           <button type="button" onClick={() => { action.sendToClaude(menu.entry); setMenu(null) }}>
-            Claude’a gönder
+            {t('Claude’a gönder')}
           </button>
           <hr />
           <button type="button" className="danger" onClick={() => { action.remove(menu.entry); setMenu(null) }}>Sil</button>

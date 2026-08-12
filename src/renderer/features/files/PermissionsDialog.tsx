@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { DirEntry } from '@shared/types/files.js'
+import { useT } from '../../stores/dil.js'
 
 interface Props {
   entry: DirEntry
@@ -20,6 +21,7 @@ const BITS = [
 ] as const
 
 export function PermissionsDialog({ entry, onApply, onClose }: Props): React.JSX.Element {
+  const t = useT()
   const [mode, setMode] = useState(entry.mode & 0o777)
   const [recursive, setRecursive] = useState(false)
 
@@ -30,7 +32,7 @@ export function PermissionsDialog({ entry, onApply, onClose }: Props): React.JSX
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => { e.stopPropagation() }}>
-        <h3>İzinler — {entry.name}</h3>
+        <h3>{t('İzinler — {ad}', { ad: entry.name })}</h3>
 
         <table className="perm-table">
           <thead>
@@ -68,13 +70,13 @@ export function PermissionsDialog({ entry, onApply, onClose }: Props): React.JSX
               checked={recursive}
               onChange={(e) => { setRecursive(e.target.checked) }}
             />
-            Alt klasör ve dosyalara da uygula
+            {t('Alt klasör ve dosyalara da uygula')}
           </label>
         )}
 
         <div className="row">
           <button type="button" onClick={() => { onApply(mode, recursive) }}>Uygula</button>
-          <button type="button" onClick={onClose}>Vazgeç</button>
+          <button type="button" onClick={onClose}>{t('Vazgeç')}</button>
         </div>
       </div>
     </div>

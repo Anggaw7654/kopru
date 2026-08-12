@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { SchemaInfo, TableRef } from '@shared/types/postgres.js'
 import { formatSize } from '../files/format.js'
+import { useT } from '../../stores/dil.js'
 
 interface Props {
   schemas: SchemaInfo[]
@@ -15,6 +16,7 @@ const KIND_ICON: Record<TableRef['kind'], string> = {
 }
 
 export function SchemaTree({ schemas, selected, onSelect }: Props): React.JSX.Element {
+  const t = useT()
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
 
   const toggle = (name: string): void => {
@@ -26,7 +28,7 @@ export function SchemaTree({ schemas, selected, onSelect }: Props): React.JSX.El
     })
   }
 
-  if (schemas.length === 0) return <p className="hint">Şema bulunamadı.</p>
+  if (schemas.length === 0) return <p className="hint">{t('Şema bulunamadı.')}</p>
 
   return (
     <div className="tree">
@@ -48,7 +50,7 @@ export function SchemaTree({ schemas, selected, onSelect }: Props): React.JSX.El
                     : ''
                 }`}
                 onClick={() => { onSelect(table) }}
-                title={`${table.estimatedRows.toLocaleString('tr-TR')} satır (tahmini) · ${formatSize(table.sizeBytes)}`}
+                title={t('{n} satır (tahmini) · {boyut}', { n: table.estimatedRows.toLocaleString(), boyut: formatSize(table.sizeBytes) })}
               >
                 {KIND_ICON[table.kind]} {table.name}
               </button>

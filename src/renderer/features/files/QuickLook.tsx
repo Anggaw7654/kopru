@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { DirEntry, PreviewResult } from '@shared/types/files.js'
 import { formatSize } from './format.js'
+import { useT } from '../../stores/dil.js'
 
 interface Props {
   profileId: string
@@ -11,6 +12,7 @@ interface Props {
 /** Mounted with a `key` of the file path, so a new file gets fresh state
  *  instead of the previous file's content flashing while the next loads. */
 export function QuickLook({ profileId, entry, onClose }: Props): React.JSX.Element {
+  const t = useT()
   const [result, setResult] = useState<PreviewResult | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -52,7 +54,7 @@ export function QuickLook({ profileId, entry, onClose }: Props): React.JSX.Eleme
 
         <div className="quicklook__body">
           {error !== null && <p className="error">{error}</p>}
-          {error === null && result === null && <p className="hint">Yükleniyor…</p>}
+          {error === null && result === null && <p className="hint">{t('Yükleniyor…')}</p>}
 
           {result?.kind === 'text' && <pre>{result.content}</pre>}
 
@@ -60,8 +62,8 @@ export function QuickLook({ profileId, entry, onClose }: Props): React.JSX.Eleme
             <>
               <p className="hint">
                 {result.truncatedBytes
-                  ? 'Dosyanın son 256 KB’ı gösteriliyor.'
-                  : `Son ${String(result.lineCount)} satır gösteriliyor.`}
+                  ? t('Dosyanın son 256 KB’ı gösteriliyor.')
+                  : t('Son {n} satır gösteriliyor.', { n: result.lineCount })}
               </p>
               <pre>{result.content}</pre>
             </>
@@ -69,13 +71,13 @@ export function QuickLook({ profileId, entry, onClose }: Props): React.JSX.Eleme
 
           {result?.kind === 'image' && <img src={result.dataUrl} alt={entry.name} />}
           {result?.kind === 'binary' && (
-            <p className="hint">İkili dosya, önizlenemiyor ({formatSize(result.size)}).</p>
+            <p className="hint">{t('İkili dosya, önizlenemiyor ({boyut}).', { boyut: formatSize(result.size) })}</p>
           )}
           {result?.kind === 'too-large' && (
-            <p className="hint">Önizleme için çok büyük ({formatSize(result.size)}).</p>
+            <p className="hint">{t('Önizleme için çok büyük ({boyut}).', { boyut: formatSize(result.size) })}</p>
           )}
           {result?.kind === 'directory' && (
-            <p className="hint">Klasör — {String(result.entryCount)} öğe.</p>
+            <p className="hint">{t('Klasör — {n} öğe.', { n: result.entryCount })}</p>
           )}
         </div>
       </div>

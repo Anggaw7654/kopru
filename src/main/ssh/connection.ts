@@ -6,6 +6,7 @@ import type { ConnectionSnapshot, ConnectionState } from '../../shared/types/con
 import type { Profile } from '../../shared/types/profile.js'
 import * as hostkeys from './hostkeys.js'
 import { secretsFor } from './profiles.js'
+import { m } from '../i18n.js'
 
 const BASE_DELAY_MS = 1_000
 const MAX_DELAY_MS = 30_000
@@ -127,7 +128,7 @@ export class SshConnection extends EventEmitter {
       config.agent = sock
     } else if (authType === 'key') {
       if (!privateKeyPath) {
-        throw new Error('Anahtar dosyası yolu tanımlı değil.')
+        throw new Error(m('Anahtar dosyası yolu tanımlı değil.'))
       }
       try {
         config.privateKey = readFileSync(privateKeyPath)
@@ -137,7 +138,7 @@ export class SshConnection extends EventEmitter {
       if (secrets.passphrase) config.passphrase = secrets.passphrase
     } else {
       if (!secrets.password) {
-        throw new Error('Bu profil için kayıtlı parola yok.')
+        throw new Error(m('Bu profil için kayıtlı parola yok.'))
       }
       config.password = secrets.password
     }
@@ -231,7 +232,7 @@ export class SshConnection extends EventEmitter {
 
   private requireClient(): Client {
     if (!this.client || this.state !== 'connected') {
-      throw new Error('Sunucuya bağlı değilsiniz.')
+      throw new Error(m('Sunucuya bağlı değilsiniz.'))
     }
     return this.client
   }

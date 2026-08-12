@@ -3,6 +3,7 @@ import type { ConnectionSnapshot } from '../../shared/types/connection.js'
 import type { IpcEventChannel, IpcEventMap } from '../../shared/ipc.js'
 import { SshConnection } from './connection.js'
 import * as profiles from './profiles.js'
+import { m } from '../i18n.js'
 
 const connections = new Map<string, SshConnection>()
 
@@ -37,13 +38,13 @@ export function get(profileId: string): SshConnection | undefined {
 
 export function require_(profileId: string): SshConnection {
   const connection = connections.get(profileId)
-  if (!connection) throw new Error('Sunucuya bağlı değilsiniz.')
+  if (!connection) throw new Error(m('Sunucuya bağlı değilsiniz.'))
   return connection
 }
 
 export async function connect(profileId: string): Promise<void> {
   const profile = profiles.list().find((p) => p.id === profileId)
-  if (!profile) throw new Error('Profil bulunamadı.')
+  if (!profile) throw new Error(m('Profil bulunamadı.'))
 
   let connection = connections.get(profileId)
   if (!connection) {

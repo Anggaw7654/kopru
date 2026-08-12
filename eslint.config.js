@@ -7,7 +7,7 @@ export default tseslint.config(
   // This file itself is excluded: it belongs to no tsconfig, so type-aware
   // rules can only report that they cannot type it. It is build config, not
   // shipped code.
-  { ignores: ['out/**', 'dist/**', 'node_modules/**', 'eslint.config.js'] },
+  { ignores: ['out/**', 'dist/**', 'node_modules/**', 'eslint.config.js', 'scripts/**'] },
 
   js.configs.recommended,
   ...tseslint.configs.strictTypeChecked,

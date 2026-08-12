@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type * as MonacoNamespace from 'monaco-editor'
 import type { OpenFileResult, SaveFileResult } from '@shared/types/files.js'
 import { formatDateTime } from './format.js'
+import { useT } from '../../stores/dil.js'
 
 interface Props {
   profileId: string
@@ -57,9 +58,10 @@ function loadMonaco(): Promise<typeof MonacoNamespace> {
 }
 
 export function MonacoEditor({ profileId, file, onClose }: Props): React.JSX.Element {
+  const t = useT()
   const hostRef = useRef<HTMLDivElement>(null)
   const editorRef = useRef<MonacoNamespace.editor.IStandaloneCodeEditor | null>(null)
-  const [status, setStatus] = useState<string | null>('Düzenleyici yükleniyor…')
+  const [status, setStatus] = useState<string | null>(null)
   const [dirty, setDirty] = useState(false)
   const [modified, setModified] = useState(file.modified)
   const [saving, setSaving] = useState(false)
@@ -136,7 +138,7 @@ export function MonacoEditor({ profileId, file, onClose }: Props): React.JSX.Ele
 
       if (result.reason === 'conflict') {
         const proceed = window.confirm(
-          'Bu dosya siz açtıktan sonra sunucuda değişti ' +
+          t('Bu dosya siz açtıktan sonra sunucuda değişti ') +
             `(${formatDateTime(result.serverModified)}).\n\n` +
             'Üzerine yazarsanız oradaki değişiklikler kaybolur. Devam edilsin mi?',
         )
@@ -147,7 +149,7 @@ export function MonacoEditor({ profileId, file, onClose }: Props): React.JSX.Ele
 
       if (result.reason === 'permission') {
         const proceed = window.confirm(
-          'Bu dosyaya yazma izniniz yok.\n\nYönetici (sudo) olarak kaydedilsin mi?',
+          t('Bu dosyaya yazma izniniz yok.\n\nYönetici (sudo) olarak kaydedilsin mi?'),
         )
         if (proceed) await save(force, true)
         else setStatus('Kaydedilmedi — izin yok.')
@@ -168,7 +170,7 @@ export function MonacoEditor({ profileId, file, onClose }: Props): React.JSX.Ele
   })
 
   const close = (): void => {
-    if (dirty && !window.confirm('Kaydedilmemiş değişiklikler var. Yine de kapatılsın mı?')) return
+    if (dirty && !window.confirm(t('Kaydedilmemiş değişiklikler var. Yine de kapatılsın mı?'))) return
     onClose()
   }
 

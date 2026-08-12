@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { app, dialog } from 'electron'
+import { m } from '../i18n.js'
 
 interface PinFile {
   version: 1
@@ -67,7 +68,7 @@ export async function verify(
   if (pinned !== undefined) {
     await dialog.showMessageBox({
       type: 'error',
-      title: 'GÜVENLİK UYARISI — Sunucu kimliği değişti',
+      title: m('GÜVENLİK UYARISI — Sunucu kimliği değişti'),
       message: `${label} sunucusunun kimliği beklenenden farklı. Bağlantı reddedildi.`,
       detail:
         `Sunucu: ${slot}\n\n` +
@@ -84,7 +85,7 @@ export async function verify(
 
   const { response } = await dialog.showMessageBox({
     type: 'question',
-    title: 'Yeni sunucu — kimliği doğrulayın',
+    title: m('Yeni sunucu — kimliği doğrulayın'),
     message: `${label} sunucusuna ilk kez bağlanıyorsunuz.`,
     detail:
       `Sunucu: ${slot}\n\nParmak izi:\n${presented}\n\n` +

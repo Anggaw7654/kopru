@@ -1,4 +1,5 @@
 import type { QueryResult } from '@shared/types/postgres.js'
+import { useT } from '../../stores/dil.js'
 
 interface Props {
   result: QueryResult
@@ -22,6 +23,7 @@ export function DataGrid({
   filter,
   onFilterChange,
 }: Props): React.JSX.Element {
+  const t = useT()
   const needle = (filter ?? '').toLowerCase()
   const rows =
     needle === ''
@@ -33,7 +35,7 @@ export function DataGrid({
       {onFilterChange && (
         <input
           className="grid__filter"
-          placeholder="Görünen satırlarda filtrele…"
+          placeholder={t('Görünen satırlarda filtrele…')}
           value={filter ?? ''}
           onChange={(e) => {
             onFilterChange(e.target.value)
@@ -76,9 +78,9 @@ export function DataGrid({
 
       <footer className="grid__meta">
         {needle === ''
-          ? `${String(result.rowCount)} satır · ${String(result.durationMs)} ms`
-          : `${String(rows.length)} / ${String(result.rows.length)} satır eşleşti`}
-        {onFilterChange && <em> — filtre yalnızca bu sayfadaki satırlara uygulanır</em>}
+          ? t('{n} satır · {ms} ms', { n: result.rowCount, ms: result.durationMs })
+          : t('{a} / {b} satır eşleşti', { a: rows.length, b: result.rows.length })}
+        {onFilterChange && <em> {t('— filtre yalnızca bu sayfadaki satırlara uygulanır')}</em>}
       </footer>
     </div>
   )

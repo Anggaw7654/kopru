@@ -8,6 +8,7 @@ import { SchemaTree } from './SchemaTree.js'
 import { DataGrid } from './DataGrid.js'
 import { SqlEditor } from './SqlEditor.js'
 import { HealthTab } from './HealthTab.js'
+import { useT } from '../../stores/dil.js'
 
 const PAGE_SIZE = 100
 
@@ -27,6 +28,7 @@ function TableView({
   database: string
   table: TableRef
 }): React.JSX.Element {
+  const t = useT()
   const [detail, setDetail] = useState<TableDetail | null>(null)
   const [rows, setRows] = useState<QueryResult | null>(null)
   const [page, setPage] = useState(0)
@@ -70,7 +72,7 @@ function TableView({
   }
 
   if (error !== null) return <div className="banner banner--error">{error}</div>
-  if (detail === null) return <p className="hint">Yükleniyor…</p>
+  if (detail === null) return <p className="hint">{t('Yükleniyor…')}</p>
 
   return (
     <>
@@ -78,7 +80,7 @@ function TableView({
         {table.schema}.{table.name}
       </h4>
       <p className="hint">
-        ~{table.estimatedRows.toLocaleString('tr-TR')} satır (planlayıcı tahmini) ·{' '}
+        {t('~{n} satır (planlayıcı tahmini)', { n: table.estimatedRows.toLocaleString() })} ·{' '}
         {formatSize(table.sizeBytes)}
       </p>
 
@@ -86,9 +88,9 @@ function TableView({
         <thead>
           <tr>
             <th>Kolon</th>
-            <th>Tür</th>
-            <th>Boş olabilir</th>
-            <th>Varsayılan</th>
+            <th>{t('Tür')}</th>
+            <th>{t('Boş olabilir')}</th>
+            <th>{t('Varsayılan')}</th>
           </tr>
         </thead>
         <tbody>
@@ -99,7 +101,7 @@ function TableView({
                 {column.name}
               </td>
               <td>{column.type}</td>
-              <td>{column.nullable ? 'evet' : 'hayır'}</td>
+              <td>{column.nullable ? t('evet') : t('hayır')}</td>
               <td className="ellipsis">{column.defaultValue ?? '—'}</td>
             </tr>
           ))}
@@ -108,14 +110,14 @@ function TableView({
 
       {detail.indexes.length > 0 && (
         <>
-          <h4>İndeksler</h4>
+          <h4>{t('İndeksler')}</h4>
           <table className="file-table">
             <thead>
               <tr>
                 <th>Ad</th>
                 <th>Tarama</th>
                 <th>Boyut</th>
-                <th>Tanım</th>
+                <th>{t('Tanım')}</th>
               </tr>
             </thead>
             <tbody>
@@ -145,7 +147,7 @@ function TableView({
             loadPage(0, orderBy, descending)
           }}
         >
-          Veriyi göster
+          {t('Veriyi göster')}
         </button>
         {rows !== null && (
           <>
@@ -158,7 +160,7 @@ function TableView({
                 loadPage(previous, orderBy, descending)
               }}
             >
-              ‹ Önceki
+              {t('‹ Önceki')}
             </button>
             <span className="hint">
               {String(page * PAGE_SIZE + 1)}–{String(page * PAGE_SIZE + rows.rowCount)}
@@ -199,6 +201,7 @@ function TableView({
 }
 
 export function PostgresPanel({ profile }: { profile: Profile }): React.JSX.Element {
+  const t = useT()
   const { database, databases, schemas, selectedTable, selectTable, setDatabase } =
     usePostgresStore()
   const setTransfersOpen = useTransferStore((s) => s.setOpen)
@@ -234,10 +237,10 @@ export function PostgresPanel({ profile }: { profile: Profile }): React.JSX.Elem
   if (!profile.postgres.enabled) {
     return (
       <div className="docker__missing">
-        <h3>PostgreSQL kapalı</h3>
+        <h3>{t('PostgreSQL kapalı')}</h3>
         <pre>
-          Bu profil için veritabanı bağlantısı yapılandırılmamış.{'\n'}
-          Sol taraftan profili Düzenle → PostgreSQL bölümünden açın.
+          {t('Bu profil için veritabanı bağlantısı yapılandırılmamış.')}{'\n'}
+          {t('Sol taraftan profili Düzenle → PostgreSQL bölümünden açın.')}
         </pre>
       </div>
     )
@@ -245,8 +248,10 @@ export function PostgresPanel({ profile }: { profile: Profile }): React.JSX.Elem
 
   const backup = async (): Promise<void> => {
     const proceed = window.confirm(
-      `${database} veritabanının yedeği alınacak (pg_dump -Fc), ardından Mac’e indirilecek.\n\n` +
-        'Büyük veritabanlarında bu işlem sunucuyu bir süre meşgul eder. Devam edilsin mi?',
+      t(
+        '{db} veritabanının yedeği alınacak (pg_dump -Fc), ardından bilgisayarınıza indirilecek.\n\nBüyük veritabanlarında bu işlem sunucuyu bir süre meşgul eder. Devam edilsin mi?',
+        { db: database },
+      ),
     )
     if (!proceed) return
 
@@ -286,7 +291,7 @@ export function PostgresPanel({ profile }: { profile: Profile }): React.JSX.Elem
               setTab('schema')
             }}
           >
-            Şema
+            {t('Şema')}
           </button>
           <button
             type="button"
@@ -304,7 +309,7 @@ export function PostgresPanel({ profile }: { profile: Profile }): React.JSX.Elem
               setTab('health')
             }}
           >
-            Sağlık
+            {t('Sağlık')}
           </button>
           <button
             type="button"
@@ -327,7 +332,7 @@ export function PostgresPanel({ profile }: { profile: Profile }): React.JSX.Elem
           </aside>
 
           <div className="pg__detail">
-            {!selectedTable && <p className="hint">Soldan bir tablo seçin.</p>}
+            {!selectedTable && <p className="hint">{t('Soldan bir tablo seçin.')}</p>}
             {selectedTable && (
               <TableView
                 key={`${selectedTable.schema}.${selectedTable.name}`}
@@ -354,7 +359,7 @@ export function PostgresPanel({ profile }: { profile: Profile }): React.JSX.Elem
             {busy ? 'Yedek alınıyor…' : `${database} yedeğini al ve indir`}
           </button>
           <p className="hint">
-            Geri yükleme bu sürümde <strong>yok</strong>. Yanlışlıkla yapılan bir geri yükleme,
+            {t('Geri yükleme bu sürümde')} <strong>yok</strong>. Yanlışlıkla yapılan bir geri yükleme,
             eksik bir özellikten çok daha fazla zarar verir.
           </p>
         </div>

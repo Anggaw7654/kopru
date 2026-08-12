@@ -1,5 +1,6 @@
 import type { DockerAvailability } from '../../../shared/types/docker.js'
 import { run } from '../files/exec.js'
+import { m } from '../../i18n.js'
 
 /**
  * Availability is cached per profile: the probe is three commands, and the
@@ -16,7 +17,7 @@ function classify(stdout: string, stderr: string, code: number): DockerAvailabil
   const text = `${stdout}\n${stderr}`.toLowerCase()
 
   if (code === 127 || text.includes('command not found') || text.includes('not found')) {
-    return { ok: false, reason: 'not-installed', message: 'Bu sunucuda Docker kurulu değil.' }
+    return { ok: false, reason: 'not-installed', message: m('Bu sunucuda Docker kurulu değil.') }
   }
   if (text.includes('permission denied')) {
     return {
@@ -29,7 +30,7 @@ function classify(stdout: string, stderr: string, code: number): DockerAvailabil
     }
   }
   if (text.includes('cannot connect to the docker daemon') || text.includes('is the docker daemon running')) {
-    return { ok: false, reason: 'daemon-down', message: 'Docker servisi çalışmıyor.' }
+    return { ok: false, reason: 'daemon-down', message: m('Docker servisi çalışmıyor.') }
   }
   return null
 }

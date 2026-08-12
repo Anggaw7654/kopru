@@ -5,6 +5,7 @@ import { usePostgresStore } from '../../stores/postgres.js'
 import { useContextStore } from '../../stores/context.js'
 import { DataGrid } from './DataGrid.js'
 import { DangerousQueryDialog } from './DangerousQueryDialog.js'
+import { useT } from '../../stores/dil.js'
 
 interface Props {
   profileId: string
@@ -19,6 +20,7 @@ function loadMonaco(): Promise<typeof MonacoNamespace> {
 }
 
 export function SqlEditor({ profileId, database }: Props): React.JSX.Element {
+  const t = useT()
   const hostRef = useRef<HTMLDivElement>(null)
   const editorRef = useRef<MonacoNamespace.editor.IStandaloneCodeEditor | null>(null)
   const runRef = useRef<(() => void) | null>(null)
@@ -79,8 +81,7 @@ export function SqlEditor({ profileId, database }: Props): React.JSX.Element {
       })
       if (value.blockedByReadOnly === true) {
         setError(
-          'Salt-okunur mod açık; PostgreSQL bu ifadeyi reddetti. ' +
-            'Yazmak için üstteki anahtarı açın.',
+          t('Salt-okunur mod açık; PostgreSQL bu ifadeyi reddetti. Yazmak için üstteki anahtarı açın.'),
         )
         setResult(null)
         return
@@ -144,7 +145,7 @@ export function SqlEditor({ profileId, database }: Props): React.JSX.Element {
     <div className="sql">
       <header className="sql__bar">
         <button type="button" disabled={busy} onClick={run}>
-          {busy ? 'Çalışıyor…' : 'Çalıştır (⌘⏎)'}
+          {busy ? t('Çalışıyor…') : t('Çalıştır (⌘⏎)')}
         </button>
         <button type="button" disabled={busy} onClick={explain}>EXPLAIN ANALYZE</button>
         <button
@@ -154,13 +155,13 @@ export function SqlEditor({ profileId, database }: Props): React.JSX.Element {
             if (sql === '') return
             addContext({ kind: 'sql', label: `${database} sorgusu`, content: sql, language: 'sql' })
             if (plan !== null) {
-              addContext({ kind: 'sql', label: 'EXPLAIN ANALYZE çıktısı', content: plan })
+              addContext({ kind: 'sql', label: t('EXPLAIN ANALYZE çıktısı'), content: plan })
             }
             // Row data is deliberately not attached — the schema and the plan
             // are what an optimisation question needs.
           }}
         >
-          Claude’a gönder
+          {t('Claude’a gönder')}
         </button>
 
         <label className={`checkbox write-toggle ${writeMode ? 'write-toggle--on' : ''}`}>
@@ -170,8 +171,7 @@ export function SqlEditor({ profileId, database }: Props): React.JSX.Element {
             onChange={(e) => {
               if (e.target.checked &&
                   !window.confirm(
-                    'Yazma modu açılacak. Bu modda sorgularınız veriyi kalıcı olarak ' +
-                    'değiştirebilir.\n\nDevam edilsin mi?',
+                    t('Yazma modu açılacak. Bu modda sorgularınız veriyi kalıcı olarak değiştirebilir.\n\nDevam edilsin mi?'),
                   )) return
               setWriteMode(e.target.checked)
             }}

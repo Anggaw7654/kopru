@@ -11,6 +11,7 @@ import { stat } from './operations.js'
 import { languageFor, shellQuote } from './paths.js'
 import { run } from './exec.js'
 import { promptForPassword } from './sudo.js'
+import { m } from '../../i18n.js'
 
 const EDIT_LIMIT_BYTES = 5 * 1024 * 1024
 
@@ -64,7 +65,7 @@ export async function open(request: PathRequest): Promise<OpenFileResult> {
 
   const data = await readAll(sftp, request.path, stats.size)
   if (data.subarray(0, 8192).includes(0)) {
-    throw new Error('Bu bir metin dosyası değil; düzenleyicide açılamaz.')
+    throw new Error(m('Bu bir metin dosyası değil; düzenleyicide açılamaz.'))
   }
 
   // Cheapest reliable writability check: ask the server, don't guess from mode

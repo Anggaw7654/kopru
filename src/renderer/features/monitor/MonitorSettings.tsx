@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { MonitorConfig } from '@shared/types/metrics.js'
 import type { Profile } from '@shared/types/profile.js'
 import { useProfileStore } from '../../stores/profiles.js'
+import { useT } from '../../stores/dil.js'
 
 interface Props {
   profile: Profile
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export function MonitorSettings({ profile, onClose }: Props): React.JSX.Element {
+  const t = useT()
   const save = useProfileStore((s) => s.save)
   const [config, setConfig] = useState<MonitorConfig>(profile.monitor)
   const [units, setUnits] = useState<string[]>([])
@@ -55,10 +57,10 @@ export function MonitorSettings({ profile, onClose }: Props): React.JSX.Element 
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal modal--wide" onClick={(e) => { e.stopPropagation() }}>
-        <h3>İzleme ayarları — {profile.name}</h3>
+        <h3>{t('İzleme ayarları — {ad}', { ad: profile.name })}</h3>
 
         <label>
-          Ölçüm aralığı (saniye)
+          {t('Ölçüm aralığı (saniye)')}
           <input
             type="number"
             min={2}
@@ -67,19 +69,19 @@ export function MonitorSettings({ profile, onClose }: Props): React.JSX.Element 
           />
         </label>
 
-        <h4>Eşikler</h4>
+        <h4>{t('Eşikler')}</h4>
         <div className="row">
           <label>Disk %<input type="number" value={String(config.thresholds.diskPercent)}
             onChange={(e) => { patch({ thresholds: { ...config.thresholds, diskPercent: Number(e.target.value) } }) }} /></label>
           <label>Bellek %<input type="number" value={String(config.thresholds.memPercent)}
             onChange={(e) => { patch({ thresholds: { ...config.thresholds, memPercent: Number(e.target.value) } }) }} /></label>
-          <label>Çekirdek başı yük<input type="number" step="0.1" value={String(config.thresholds.loadPerCore)}
+          <label>{t('Çekirdek başı yük')}<input type="number" step="0.1" value={String(config.thresholds.loadPerCore)}
             onChange={(e) => { patch({ thresholds: { ...config.thresholds, loadPerCore: Number(e.target.value) } }) }} /></label>
         </div>
 
-        <h4>nginx (isteğe bağlı)</h4>
+        <h4>{t('nginx (isteğe bağlı)')}</h4>
         <label>
-          Erişim logu yolu — boş bırakılırsa ölçülmez
+          {t('Erişim logu yolu — boş bırakılırsa ölçülmez')}
           <input
             value={config.nginxLogPath ?? ''}
             placeholder="/var/log/nginx/access.log"
@@ -98,15 +100,15 @@ export function MonitorSettings({ profile, onClose }: Props): React.JSX.Element 
         <label className="checkbox">
           <input type="checkbox" checked={config.postgres}
             onChange={(e) => { patch({ postgres: e.target.checked }) }} />
-          PostgreSQL bağlantı sayısını ölç (sunucuda parolasız psql erişimi gerekir)
+          {t('PostgreSQL bağlantı sayısını ölç (sunucuda parolasız psql erişimi gerekir)')}
         </label>
 
-        <h4>İzlenecek servisler ({String(config.services.length)} seçili)</h4>
+        <h4>{t('İzlenecek servisler ({n} seçili)', { n: config.services.length })}</h4>
         {error !== null && <p className="error">{error}</p>}
         <input placeholder="Servis ara…" value={filter}
           onChange={(e) => { setFilter(e.target.value.toLowerCase()) }} />
         <div className="unit-list">
-          {visible.length === 0 && <p className="hint">Servis bulunamadı.</p>}
+          {visible.length === 0 && <p className="hint">{t('Servis bulunamadı.')}</p>}
           {visible.map((unit) => (
             <label key={unit} className="checkbox">
               <input type="checkbox" checked={config.services.includes(unit)}
@@ -118,10 +120,10 @@ export function MonitorSettings({ profile, onClose }: Props): React.JSX.Element 
 
         <div className="row">
           <button type="button" onClick={() => void apply()}>Kaydet</button>
-          <button type="button" onClick={onClose}>Vazgeç</button>
+          <button type="button" onClick={onClose}>{t('Vazgeç')}</button>
         </div>
         <p className="hint">
-          Değişiklikler bağlantı yeniden kurulduğunda ya da yeniden bağlandığınızda geçerli olur.
+          {t('Değişiklikler bağlantı yeniden kurulduğunda ya da yeniden bağlandığınızda geçerli olur.')}
         </p>
       </div>
     </div>

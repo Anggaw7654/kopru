@@ -3,6 +3,7 @@ import type { AuthType, Profile, ProfileInput } from '@shared/types/profile.js'
 import type { PostgresConfig } from '@shared/types/postgres.js'
 import { DEFAULT_POSTGRES } from '@shared/types/postgres.js'
 import { useProfileStore } from '../../stores/profiles.js'
+import { useT } from '../../stores/dil.js'
 
 interface Props {
   editing: Profile | null
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export function ProfileForm({ editing, onDone }: Props): React.JSX.Element {
+  const t = useT()
   const save = useProfileStore((s) => s.save)
   const [name, setName] = useState(editing?.name ?? '')
   const [host, setHost] = useState(editing?.host ?? '')
@@ -58,7 +60,7 @@ export function ProfileForm({ editing, onDone }: Props): React.JSX.Element {
 
   return (
     <form className="profile-form" onSubmit={(e) => void submit(e)}>
-      <h2>{editing ? 'Sunucuyu düzenle' : 'Yeni sunucu'}</h2>
+      <h2>{editing ? t('Sunucuyu düzenle') : t('Yeni sunucu')}</h2>
 
       <label>
         Ad
@@ -68,7 +70,7 @@ export function ProfileForm({ editing, onDone }: Props): React.JSX.Element {
             setName(e.target.value)
           }}
           required
-          placeholder="Üretim sunucusu"
+          placeholder={t('Üretim sunucusu')}
         />
       </label>
 
@@ -98,7 +100,7 @@ export function ProfileForm({ editing, onDone }: Props): React.JSX.Element {
       </div>
 
       <label>
-        Kullanıcı adı
+        {t('Kullanıcı adı')}
         <input
           value={username}
           onChange={(e) => {
@@ -109,14 +111,14 @@ export function ProfileForm({ editing, onDone }: Props): React.JSX.Element {
       </label>
 
       <label>
-        Kimlik doğrulama
+        {t('Kimlik doğrulama')}
         <select
           value={authType}
           onChange={(e) => {
             setAuthType(e.target.value as AuthType)
           }}
         >
-          <option value="key">Anahtar dosyası</option>
+          <option value="key">{t('Anahtar dosyası')}</option>
           <option value="password">Parola</option>
           <option value="agent">ssh-agent</option>
         </select>
@@ -125,7 +127,7 @@ export function ProfileForm({ editing, onDone }: Props): React.JSX.Element {
       {authType === 'key' && (
         <>
           <label>
-            Anahtar dosyası yolu
+            {t('Anahtar dosyası yolu')}
             <input
               value={privateKeyPath}
               onChange={(e) => {
@@ -136,8 +138,8 @@ export function ProfileForm({ editing, onDone }: Props): React.JSX.Element {
             />
           </label>
           <label>
-            Anahtar parolası{' '}
-            {editing?.hasPassphrase && <em>(kayıtlı — boş bırakırsanız korunur)</em>}
+            {t('Anahtar parolası')}{' '}
+            {editing?.hasPassphrase && <em>{t('(kayıtlı — boş bırakırsanız korunur)')}</em>}
             <input
               type="password"
               value={passphrase}
@@ -151,7 +153,7 @@ export function ProfileForm({ editing, onDone }: Props): React.JSX.Element {
 
       {authType === 'password' && (
         <label>
-          Parola {editing?.hasPassword && <em>(kayıtlı — boş bırakırsanız korunur)</em>}
+          Parola {editing?.hasPassword && <em>{t('(kayıtlı — boş bırakırsanız korunur)')}</em>}
           <input
             type="password"
             value={password}
@@ -170,7 +172,7 @@ export function ProfileForm({ editing, onDone }: Props): React.JSX.Element {
             setAutoConnect(e.target.checked)
           }}
         />
-        Uygulama açılınca otomatik bağlan
+        {t('Uygulama açılınca otomatik bağlan')}
       </label>
 
       <h4>PostgreSQL</h4>
@@ -180,14 +182,13 @@ export function ProfileForm({ editing, onDone }: Props): React.JSX.Element {
           checked={pg.enabled}
           onChange={(e) => { setPg({ ...pg, enabled: e.target.checked }) }}
         />
-        Bu sunucuda PostgreSQL paneli açık
+        {t('Bu sunucuda PostgreSQL paneli açık')}
       </label>
 
       {pg.enabled && (
         <>
           <p className="hint">
-            Adres sunucunun kendi bakışıyla girilir. Tünel SSH üzerinden kurulur;
-            Mac’inizde hiçbir port açılmaz.
+            {t('Adres sunucunun kendi bakışıyla girilir. Tünel SSH üzerinden kurulur; bilgisayarınızda hiçbir port açılmaz.')}
           </p>
           <div className="row">
             <label className="grow">
@@ -201,20 +202,20 @@ export function ProfileForm({ editing, onDone }: Props): React.JSX.Element {
             </label>
           </div>
           <label>
-            Veritabanı
+            {t('Veritabanı')}
             <input value={pg.database} onChange={(e) => { setPg({ ...pg, database: e.target.value }) }} />
           </label>
           <label>
-            Kullanıcı
+            {t('Kullanıcı')}
             <input value={pg.user} onChange={(e) => { setPg({ ...pg, user: e.target.value }) }} />
           </label>
           <label>
-            Parola {editing?.postgres.hasPassword === true && <em>(kayıtlı — boş bırakırsanız korunur)</em>}
+            Parola {editing?.postgres.hasPassword === true && <em>{t('(kayıtlı — boş bırakırsanız korunur)')}</em>}
             <input type="password" value={pgPassword}
               onChange={(e) => { setPgPassword(e.target.value) }} />
           </label>
           <label>
-            Sorgu zaman aşımı (saniye)
+            {t('Sorgu zaman aşımı (saniye)')}
             <input type="number" min={5} value={String(pg.statementTimeoutMs / 1000)}
               onChange={(e) => {
                 setPg({ ...pg, statementTimeoutMs: Math.max(5, Number(e.target.value)) * 1000 })
@@ -230,7 +231,7 @@ export function ProfileForm({ editing, onDone }: Props): React.JSX.Element {
           {busy ? 'Kaydediliyor…' : 'Kaydet'}
         </button>
         <button type="button" onClick={onDone}>
-          Vazgeç
+          {t('Vazgeç')}
         </button>
       </div>
     </form>

@@ -3,6 +3,7 @@ import type { PostgresConfig } from '../../../shared/types/postgres.js'
 import { run } from '../files/exec.js'
 import { shellQuote } from '../files/paths.js'
 import * as transfers from '../files/transfers.js'
+import { m } from '../../i18n.js'
 
 /**
  * pg_dump runs on the server, then the finished file is pulled down through the
@@ -36,7 +37,7 @@ export async function backup(
   if (result.code !== 0) {
     const detail = result.stdout.trim() || result.stderr.trim()
     if (/command not found/i.test(detail)) {
-      throw new Error('Sunucuda pg_dump kurulu değil (postgresql-client paketi gerekiyor).')
+      throw new Error(m('Sunucuda pg_dump kurulu değil (postgresql-client paketi gerekiyor).'))
     }
     if (/authentication failed|no pg_hba/i.test(detail)) {
       throw new Error(

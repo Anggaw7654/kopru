@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { PrunePreview, PruneTarget } from '@shared/types/docker.js'
 import { formatSize } from '../files/format.js'
+import { useT } from '../../stores/dil.js'
 
 interface Props {
   profileId: string
@@ -18,6 +19,7 @@ const LABEL: Record<PruneTarget, string> = {
 }
 
 export function PruneDialog({ profileId, target, onDone, onClose }: Props): React.JSX.Element {
+  const t = useT()
   const [preview, setPreview] = useState<PrunePreview | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -45,27 +47,27 @@ export function PruneDialog({ profileId, target, onDone, onClose }: Props): Reac
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal modal--danger" onClick={(e) => { e.stopPropagation() }}>
-        <h3>{LABEL[target]} silinecek</h3>
+        <h3>{t('{tur} silinecek', { tur: t(LABEL[target]) })}</h3>
 
         {error !== null && <p className="error">{error}</p>}
-        {preview === null && error === null && <p className="hint">Hesaplanıyor…</p>}
+        {preview === null && error === null && <p className="hint">{t('Hesaplanıyor…')}</p>}
 
         {preview && (
           <>
             <p className="prune-size">
-              Geri kazanılacak alan: <strong>{formatSize(preview.reclaimableBytes)}</strong>
+              {t('Geri kazanılacak alan:')} <strong>{formatSize(preview.reclaimableBytes)}</strong>
             </p>
 
             {isVolume && preview.items.length > 0 && (
               <p className="error">
                 Volume’ler veri tutar. Aşağıdakiler bir konteynere bağlı değil, ama
                 içlerinde veritabanı ya da yüklenmiş dosyalar olabilir. Bu işlem
-                <strong> geri alınamaz</strong>.
+                <strong> {t('geri alınamaz')}</strong>.
               </p>
             )}
 
             {preview.items.length === 0 ? (
-              <p className="hint">Silinecek bir şey yok.</p>
+              <p className="hint">{t('Silinecek bir şey yok.')}</p>
             ) : (
               <>
                 <p className="hint">{String(preview.items.length)} öğe silinecek:</p>
@@ -89,7 +91,7 @@ export function PruneDialog({ profileId, target, onDone, onClose }: Props): Reac
           >
             {busy ? 'Siliniyor…' : 'Kalıcı olarak sil'}
           </button>
-          <button type="button" onClick={onClose}>Vazgeç</button>
+          <button type="button" onClick={onClose}>{t('Vazgeç')}</button>
         </div>
       </div>
     </div>

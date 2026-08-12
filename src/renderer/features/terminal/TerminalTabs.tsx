@@ -2,8 +2,10 @@ import { useCallback } from 'react'
 import { useTerminalStore } from '../../stores/terminal.js'
 import { useConnectionStore } from '../../stores/connection.js'
 import { TerminalPane } from './TerminalPane.js'
+import { useT } from '../../stores/dil.js'
 
 export function TerminalTabs(): React.JSX.Element {
+  const t = useT()
   const { tabs, activeSessionId, add, remove, setActive } = useTerminalStore()
   const activeProfileId = useConnectionStore((s) => s.activeProfileId)
   const connection = useConnectionStore((s) =>
@@ -53,7 +55,7 @@ export function TerminalTabs(): React.JSX.Element {
             <button
               type="button"
               className="tab__close"
-              aria-label="Sekmeyi kapat"
+              aria-label={t('Sekmeyi kapat')}
               onClick={(event) => {
                 event.stopPropagation()
                 void closeTab(tab.sessionId)
@@ -69,7 +71,7 @@ export function TerminalTabs(): React.JSX.Element {
           disabled={!connected}
           onClick={() => void openTab()}
         >
-          + Yeni terminal
+          {t('+ Yeni terminal')}
         </button>
       </div>
 
@@ -77,8 +79,8 @@ export function TerminalTabs(): React.JSX.Element {
         {tabs.length === 0 && (
           <div className="empty">
             {connected
-              ? 'Başlamak için “Yeni terminal” deyin.'
-              : 'Terminal açmak için önce bir sunucuya bağlanın.'}
+              ? t('Başlamak için “Yeni terminal” deyin.')
+              : t('Terminal açmak için önce bir sunucuya bağlanın.')}
           </div>
         )}
         {tabs.map((tab) => (

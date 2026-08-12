@@ -6,6 +6,7 @@ import { WebglAddon } from '@xterm/addon-webgl'
 import '@xterm/xterm/css/xterm.css'
 import { useContextStore } from '../../stores/context.js'
 import { useSettingsStore } from '../../stores/settings.js'
+import { useT } from '../../stores/dil.js'
 
 interface Props {
   sessionId: string
@@ -13,6 +14,17 @@ interface Props {
 }
 
 export function TerminalPane({ sessionId, visible }: Props): React.JSX.Element {
+  const t = useT()
+  // Efekt, terminali kurar ve YALNIZCA sessionId/font değişince yeniden
+  // kurulmalı. `t`'yi doğrudan kullanmak onu bağımlılık yapardı; dil
+  // değiştiğinde terminal yeniden kurulur ve sekmedeki geçmiş metin
+  // kaybolurdu. Ref her zaman güncel çeviriyi taşır, kimliği değişmez.
+  const tRef = useRef(t)
+  // Ref'e render SIRASINDA yazmak React kuralını çiğner (bkz. react-hooks/refs);
+  // güncelleme kendi efektine alınıyor.
+  useEffect(() => {
+    tRef.current = t
+  }, [t])
   const addContext = useContextStore((s) => s.add)
   const fontSize = useSettingsStore((s) => s.terminalFontSize)
   const hostRef = useRef<HTMLDivElement>(null)
@@ -64,13 +76,13 @@ export function TerminalPane({ sessionId, visible }: Props): React.JSX.Element {
     })
     const offExit = window.kopru.on('terminal:exit', (payload) => {
       if (payload.sessionId === sessionId) {
-        term.write('\r\n\x1b[33m[Köprü] Oturum kapandı.\x1b[0m\r\n')
+        term.write(`\r\n\x1b[33m[Köprü] ${tRef.current('Oturum kapandı.')}\x1b[0m\r\n`)
       }
     })
     const offRestored = window.kopru.on('terminal:restored', (payload) => {
       if (payload.sessionId === sessionId) {
         term.write(
-          '\r\n\x1b[36m[Köprü] Bağlantı yenilendi — bu sekmede yeni bir oturum açıldı.\x1b[0m\r\n',
+          `\r\n\x1b[36m[Köprü] ${tRef.current('Bağlantı yenilendi — bu sekmede yeni bir oturum açıldı.')}\x1b[0m\r\n`,
         )
       }
     })
@@ -86,8 +98,8 @@ export function TerminalPane({ sessionId, visible }: Props): React.JSX.Element {
       if (selection.trim() === '') return
       event.preventDefault()
       const preview = selection.trim().split('\n')[0]?.slice(0, 40) ?? ''
-      if (!window.confirm(`Seçili ${String(selection.length)} karakter Claude bağlamına eklensin mi?\n\n${preview}…`)) return
-      addContext({ kind: 'terminal', label: 'Terminal seçimi', content: selection })
+      if (!window.confirm(tRef.current('Seçili {n} karakter Claude bağlamına eklensin mi?\n\n{onizleme}…', { n: selection.length, onizleme: preview }))) return
+      addContext({ kind: 'terminal', label: tRef.current('Terminal seçimi'), content: selection })
     }
     host.addEventListener('contextmenu', onContextMenu)
 

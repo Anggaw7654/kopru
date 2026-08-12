@@ -8,6 +8,7 @@ import { DEFAULT_MONITOR } from '../../shared/types/metrics.js'
 import type { PostgresConfig } from '../../shared/types/postgres.js'
 import { DEFAULT_POSTGRES } from '../../shared/types/postgres.js'
 import type { Shortcut } from '../../shared/types/files.js'
+import { m } from '../i18n.js'
 
 /**
  * On-disk shape. Secrets are stored as base64 of safeStorage ciphertext, which
@@ -57,7 +58,7 @@ function read(): ProfileFile {
     ) {
       return parsed as ProfileFile
     }
-    throw new Error('beklenmeyen dosya yapısı')
+    throw new Error(m('beklenmeyen dosya yapısı'))
   } catch (error) {
     // Refuse to silently start with an empty profile list: that looks to the
     // user like their servers vanished, and the next save would overwrite the
@@ -225,7 +226,7 @@ export function setShortcuts(id: string, shortcuts: Shortcut[]): Profile {
   const file = read()
   const index = file.profiles.findIndex((p) => p.id === id)
   const stored = file.profiles[index]
-  if (index < 0 || !stored) throw new Error('Profil bulunamadı.')
+  if (index < 0 || !stored) throw new Error(m('Profil bulunamadı.'))
   stored.shortcuts = shortcuts
   write(file)
   return toPublic(stored)

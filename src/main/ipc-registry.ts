@@ -27,6 +27,7 @@ import * as pgHealth from './modules/postgres/health.js'
 import * as pgBackup from './modules/postgres/backup.js'
 import * as contextCollect from './modules/context/collect.js'
 import { dialog, BrowserWindow } from 'electron'
+import { dilAyarla, m } from './i18n.js'
 
 /**
  * Typed wrappers. Every handler's argument and return type is checked against
@@ -62,6 +63,12 @@ function receive<C extends IpcSendChannel>(
 }
 
 export function registerIpcHandlers(): void {
+  // Dil EN ÖNCE kaydedilir: bundan sonraki her handler hata mesajını
+  // kullanıcının dilinde üretebilsin diye.
+  receive('dil:degisti', ({ dil }) => {
+    dilAyarla(dil)
+  })
+
   handle('profiles:list', () => profiles.list())
   handle('profiles:save', (input) => profiles.save(input))
   handle('profiles:delete', ({ id }) => {
@@ -116,12 +123,12 @@ export function registerIpcHandlers(): void {
     const window = BrowserWindow.getFocusedWindow()
     const result = await (window
       ? dialog.showOpenDialog(window, {
-          title: 'İndirme klasörünü seçin',
+          title: m('İndirme klasörünü seçin'),
           properties: ['openDirectory', 'createDirectory'],
           buttonLabel: 'Buraya indir',
         })
       : dialog.showOpenDialog({
-          title: 'İndirme klasörünü seçin',
+          title: m('İndirme klasörünü seçin'),
           properties: ['openDirectory', 'createDirectory'],
           buttonLabel: 'Buraya indir',
         }))
@@ -171,9 +178,9 @@ export function registerIpcHandlers(): void {
 
   const pgConfig = (profileId: string) => {
     const profile = profiles.list().find((p) => p.id === profileId)
-    if (!profile) throw new Error('Profil bulunamadı.')
+    if (!profile) throw new Error(m('Profil bulunamadı.'))
     if (!profile.postgres.enabled) {
-      throw new Error('Bu profilde PostgreSQL kapalı. Ayarlar’dan açın.')
+      throw new Error(m('Bu profilde PostgreSQL kapalı. Ayarlar’dan açın.'))
     }
     return profile.postgres
   }
@@ -213,7 +220,7 @@ export function registerIpcHandlers(): void {
   handle('pg:backup', async (request) => {
     const window = BrowserWindow.getFocusedWindow()
     const options = {
-      title: 'Yedeğin indirileceği klasörü seçin',
+      title: m('Yedeğin indirileceği klasörü seçin'),
       properties: ['openDirectory', 'createDirectory'] as const,
       buttonLabel: 'Buraya indir',
     }
@@ -227,7 +234,7 @@ export function registerIpcHandlers(): void {
 
   handle('context:system-summary', ({ profileId }) => {
     const profile = profiles.list().find((p) => p.id === profileId)
-    if (!profile) throw new Error('Profil bulunamadı.')
+    if (!profile) throw new Error(m('Profil bulunamadı.'))
     return contextCollect.summarise(profile)
   })
 

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { ServiceStatus } from '@shared/types/metrics.js'
+import { useT } from '../../stores/dil.js'
 
 interface Props {
   profileId: string
@@ -7,11 +8,12 @@ interface Props {
 }
 
 export function ServiceList({ profileId, services }: Props): React.JSX.Element {
+  const t = useT()
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const restart = async (unit: string): Promise<void> => {
-    if (!window.confirm(`${unit} servisi yeniden başlatılacak.\n\nDevam edilsin mi?`)) return
+    if (!window.confirm(t('{unit} servisi yeniden başlatılacak.\n\nDevam edilsin mi?', { unit }))) return
     setBusy(unit)
     setError(null)
     try {
@@ -24,7 +26,7 @@ export function ServiceList({ profileId, services }: Props): React.JSX.Element {
   }
 
   if (services.length === 0) {
-    return <p className="hint">İzlenecek servis seçilmedi. Ayarlar’dan ekleyin.</p>
+    return <p className="hint">{t('İzlenecek servis seçilmedi. Ayarlar’dan ekleyin.')}</p>
   }
 
   return (
@@ -36,7 +38,7 @@ export function ServiceList({ profileId, services }: Props): React.JSX.Element {
           <strong>{service.unit}</strong>
           <span className="service__state">{service.state}</span>
           <button type="button" disabled={busy === service.unit} onClick={() => void restart(service.unit)}>
-            {busy === service.unit ? 'Başlatılıyor…' : 'Yeniden başlat'}
+            {busy === service.unit ? t('Başlatılıyor…') : t('Yeniden başlat')}
           </button>
         </div>
       ))}

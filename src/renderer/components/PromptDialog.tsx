@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useT } from '../stores/dil.js'
 
 interface PromptOptions {
   title: string
@@ -53,6 +54,7 @@ function PromptDialog({
   state: PromptState
   onFinish: (value: string | null) => void
 }): React.JSX.Element {
+  const t = useT()
   const [value, setValue] = useState(state.defaultValue ?? '')
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -116,7 +118,7 @@ function PromptDialog({
               onFinish(null)
             }}
           >
-            Vazgeç
+            {t('Vazgeç')}
           </button>
         </div>
       </form>

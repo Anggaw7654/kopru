@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { SystemSummary } from '@shared/types/context.js'
 import { useContextStore } from '../../stores/context.js'
 import { formatForClipboard } from './format.js'
+import { useT } from '../../stores/dil.js'
 
 interface Props {
   profileId: string | null
@@ -12,6 +13,7 @@ const KIND_ICON: Record<string, string> = {
 }
 
 export function ContextPanel({ profileId }: Props): React.JSX.Element | null {
+  const t = useT()
   const { items, open, setOpen, remove, clear } = useContextStore()
   const [question, setQuestion] = useState('')
   const [includeSystem, setIncludeSystem] = useState(true)
@@ -41,16 +43,16 @@ export function ContextPanel({ profileId }: Props): React.JSX.Element | null {
     const text = formatForClipboard(items, summary, question)
     try {
       await navigator.clipboard.writeText(text)
-      setStatus(`Kopyalandı — ${String(text.length)} karakter. Claude'a yapıştırabilirsiniz.`)
+      setStatus(t('Kopyalandı — {n} karakter. Claude’a yapıştırabilirsiniz.', { n: text.length }))
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : 'Panoya kopyalanamadı.')
+      setStatus(error instanceof Error ? error.message : t('Panoya kopyalanamadı.'))
     }
   }
 
   return (
     <div className={`ctx ${open ? 'ctx--open' : ''}`}>
       <button type="button" className="ctx__toggle" onClick={() => { setOpen(!open) }}>
-        Claude bağlamı ({String(items.length)})
+        {t('Claude bağlamı ({n})', { n: items.length })}
         {totalRedactions > 0 && <em className="ctx__redacted">{String(totalRedactions)} gizlendi</em>}
         <span>{open ? '▾' : '▴'}</span>
       </button>
@@ -59,8 +61,8 @@ export function ContextPanel({ profileId }: Props): React.JSX.Element | null {
         <div className="ctx__body">
           {items.length === 0 && (
             <p className="hint">
-              Dosya, log, SQL veya terminal çıktısında <strong>“Claude’a gönder”</strong>
-              deyin; buraya birikir. Hazır olunca kopyalayıp kendi Claude’unuza yapıştırın.
+              {t('Dosya, log, SQL veya terminal çıktısında')} <strong>{t('“Claude’a gönder”')}</strong>
+              {t('deyin; buraya birikir. Hazır olunca kopyalayıp kendi Claude’unuza yapıştırın.')}
             </p>
           )}
 
@@ -80,7 +82,7 @@ export function ContextPanel({ profileId }: Props): React.JSX.Element | null {
 
               {item.redactions.length > 0 && (
                 <p className="ctx__warn">
-                  Çıkarıldı:{' '}
+                  {t('Çıkarıldı:')}{' '}
                   {item.redactions.map((r) => `${r.kind} ×${String(r.count)}`).join(', ')}
                 </p>
               )}
@@ -91,7 +93,7 @@ export function ContextPanel({ profileId }: Props): React.JSX.Element | null {
 
           <textarea
             className="ctx__question"
-            placeholder="Sorunuz (isteğe bağlı) — örn. “disk neden doluyor?”"
+            placeholder={t('Sorunuz (isteğe bağlı) — örn. “disk neden doluyor?”')}
             value={question}
             rows={2}
             onChange={(e) => { setQuestion(e.target.value) }}
@@ -104,7 +106,7 @@ export function ContextPanel({ profileId }: Props): React.JSX.Element | null {
               onChange={(e) => { setIncludeSystem(e.target.checked) }}
               disabled={profileId === null}
             />
-            Sunucu özetini de ekle (sistem, çalışma süresi, ölçümler — kimlik bilgisi yok)
+            {t('Sunucu özetini de ekle (sistem, çalışma süresi, ölçümler — kimlik bilgisi yok)')}
           </label>
 
           <div className="row">

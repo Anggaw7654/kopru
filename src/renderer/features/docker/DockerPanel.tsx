@@ -6,6 +6,7 @@ import { useTerminalStore } from '../../stores/terminal.js'
 import { formatSize } from '../files/format.js'
 import { ContainerLogs } from './ContainerLogs.js'
 import { PruneDialog } from './PruneDialog.js'
+import { useT } from '../../stores/dil.js'
 
 interface Props {
   profileId: string
@@ -17,6 +18,7 @@ type Tab = 'containers' | 'compose' | 'storage'
 const STATS_INTERVAL_MS = 10_000
 
 export function DockerPanel({ profileId }: Props): React.JSX.Element {
+  const t = useT()
   const addTerminalTab = useTerminalStore((s) => s.add)
 
   const [availability, setAvailability] = useState<DockerAvailability | null>(null)
@@ -88,7 +90,7 @@ export function DockerPanel({ profileId }: Props): React.JSX.Element {
     return (
       <div className="docker">
         <div className="docker__missing">
-          <h3>Docker kullanılamıyor</h3>
+          <h3>{t('Docker kullanılamıyor')}</h3>
           <pre>{availability.message}</pre>
         </div>
       </div>
@@ -99,7 +101,7 @@ export function DockerPanel({ profileId }: Props): React.JSX.Element {
     container: Container,
     action: 'start' | 'stop' | 'restart',
   ): Promise<void> => {
-    const label = { start: 'başlatılacak', stop: 'durdurulacak', restart: 'yeniden başlatılacak' }[action]
+    const label = t({ start: 'başlatılacak', stop: 'durdurulacak', restart: 'yeniden başlatılacak' }[action])
     if (!window.confirm(`${container.name} konteyneri ${label}.\n\nDevam edilsin mi?`)) return
     setBusy(container.id)
     setError(null)
@@ -187,7 +189,7 @@ export function DockerPanel({ profileId }: Props): React.JSX.Element {
         <table className="file-table">
           <thead>
             <tr>
-              <th>Ad</th><th>Görüntü</th><th>Durum</th><th>Portlar</th>
+              <th>Ad</th><th>{t('Görüntü')}</th><th>Durum</th><th>Portlar</th>
               <th>CPU</th><th>Bellek</th><th />
             </tr>
           </thead>
@@ -222,14 +224,14 @@ export function DockerPanel({ profileId }: Props): React.JSX.Element {
                     {container.running ? (
                       <>
                         <button type="button" disabled={busy === container.id}
-                          onClick={() => void containerAction(container, 'restart')}>Yeniden başlat</button>
+                          onClick={() => void containerAction(container, 'restart')}>{t('Yeniden başlat')}</button>
                         <button type="button" disabled={busy === container.id}
                           onClick={() => void containerAction(container, 'stop')}>Durdur</button>
                         <button type="button" onClick={() => { openShell(container) }}>Kabuk</button>
                       </>
                     ) : (
                       <button type="button" disabled={busy === container.id}
-                        onClick={() => void containerAction(container, 'start')}>Başlat</button>
+                        onClick={() => void containerAction(container, 'start')}>{t('Başlat')}</button>
                     )}
                     <button type="button" onClick={() => { setLogsFor(container) }}>Log</button>
                   </td>
@@ -247,7 +249,7 @@ export function DockerPanel({ profileId }: Props): React.JSX.Element {
       {tab === 'compose' && (
         <>
           {availability.composeCommand === null && (
-            <p className="hint">Bu sunucuda Docker Compose kurulu değil.</p>
+            <p className="hint">{t('Bu sunucuda Docker Compose kurulu değil.')}</p>
           )}
           {projects.map((project) => (
             <div key={project.name} className="compose">
@@ -258,21 +260,20 @@ export function DockerPanel({ profileId }: Props): React.JSX.Element {
               <span className="card__sub ellipsis">{project.configFiles.join(', ') || '—'}</span>
               <div className="actions">
                 <button type="button" disabled={busy === project.name}
-                  onClick={() => void composeAction(project, 'up')}>Başlat</button>
+                  onClick={() => void composeAction(project, 'up')}>{t('Başlat')}</button>
                 <button type="button" disabled={busy === project.name}
-                  onClick={() => void composeAction(project, 'restart')}>Yeniden başlat</button>
+                  onClick={() => void composeAction(project, 'restart')}>{t('Yeniden başlat')}</button>
                 <button type="button" disabled={busy === project.name}
                   onClick={() => void composeAction(project, 'down')}>Durdur</button>
                 <button type="button" disabled={busy === project.name}
-                  title="down + up: dosyadaki değişikliklerin tamamı uygulanır"
-                  onClick={() => void composeAction(project, 'apply')}>Değişikliği uygula</button>
+                  title={t('down + up: dosyadaki değişikliklerin tamamı uygulanır')}
+                  onClick={() => void composeAction(project, 'apply')}>{t('Değişikliği uygula')}</button>
               </div>
             </div>
           ))}
           {projects.length > 0 && (
             <p className="hint">
-              Compose dosyasını düzenlemek için Dosyalar sekmesinden yukarıdaki yolu açın,
-              sonra “Değişikliği uygula” deyin.
+              {t('Compose dosyasını düzenlemek için Dosyalar sekmesinden yukarıdaki yolu açın, sonra “Değişikliği uygula” deyin.')}
             </p>
           )}
         </>
@@ -282,7 +283,7 @@ export function DockerPanel({ profileId }: Props): React.JSX.Element {
         <>
           <table className="file-table">
             <thead>
-              <tr><th>Tür</th><th>Toplam</th><th>Etkin</th><th>Boyut</th><th>Geri kazanılabilir</th></tr>
+              <tr><th>{t('Tür')}</th><th>Toplam</th><th>Etkin</th><th>Boyut</th><th>{t('Geri kazanılabilir')}</th></tr>
             </thead>
             <tbody>
               {usage.map((row) => (
@@ -298,10 +299,10 @@ export function DockerPanel({ profileId }: Props): React.JSX.Element {
           </table>
 
           <div className="actions prune-actions">
-            <button type="button" className="danger" onClick={() => { setPruneTarget('image') }}>Görüntüleri temizle</button>
-            <button type="button" className="danger" onClick={() => { setPruneTarget('container') }}>Durmuş konteynerleri temizle</button>
-            <button type="button" className="danger" onClick={() => { setPruneTarget('network') }}>Ağları temizle</button>
-            <button type="button" className="danger" onClick={() => { setPruneTarget('buildcache') }}>Derleme önbelleğini temizle</button>
+            <button type="button" className="danger" onClick={() => { setPruneTarget('image') }}>{t('Görüntüleri temizle')}</button>
+            <button type="button" className="danger" onClick={() => { setPruneTarget('container') }}>{t('Durmuş konteynerleri temizle')}</button>
+            <button type="button" className="danger" onClick={() => { setPruneTarget('network') }}>{t('Ağları temizle')}</button>
+            <button type="button" className="danger" onClick={() => { setPruneTarget('buildcache') }}>{t('Derleme önbelleğini temizle')}</button>
             <button type="button" className="danger" onClick={() => { setPruneTarget('volume') }}>Volume’leri temizle</button>
           </div>
         </>
@@ -314,7 +315,7 @@ export function DockerPanel({ profileId }: Props): React.JSX.Element {
           onClose={() => { setPruneTarget(null) }}
           onDone={(reclaimed) => {
             setPruneTarget(null)
-            window.alert(`${formatSize(reclaimed)} geri kazanıldı.`)
+            window.alert(t('{boyut} geri kazanıldı.', { boyut: formatSize(reclaimed) }))
             window.kopru.invoke('docker:disk-usage', { profileId }).then(setUsage).catch(fail)
           }}
         />

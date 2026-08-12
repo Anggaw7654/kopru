@@ -2,11 +2,12 @@ import type { ComposeActionRequest, ComposeProject } from '../../../shared/types
 import { run } from '../files/exec.js'
 import { shellQuote } from '../files/paths.js'
 import { requireDocker } from './detect.js'
+import { m } from '../../i18n.js'
 
 async function composeBinary(profileId: string): Promise<string> {
   const { composeCommand } = await requireDocker(profileId)
   if (composeCommand === null) {
-    throw new Error('Bu sunucuda Docker Compose kurulu değil.')
+    throw new Error(m('Bu sunucuda Docker Compose kurulu değil.'))
   }
   return composeCommand
 }

@@ -41,6 +41,13 @@ jobs:
         run: npx electron-vite build && npx electron-builder --${{ matrix.platform }} --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Monaco'nun bundle'ı varsayılan V8 yığınını taşırıyor; macOS
+          # runner'da "heap out of memory" ile 134 dönüyordu.
+          NODE_OPTIONS: --max-old-space-size=8192
+          # Runner'da imzalama kimliği yok; otomatik keşif açık kalırsa
+          # electron-builder Keychain'de arayıp hata veriyor. Ad-hoc imza
+          # zaten package.json'daki mac.identity: "-" ile atılıyor.
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
 
       - name: Upload to release
         uses: softprops/action-gh-release@v2

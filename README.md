@@ -11,7 +11,9 @@ a *single* SSH connection, with no agent to install on the server.
 [![Electron](https://img.shields.io/badge/Electron-43-47848F.svg)](https://electronjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6.svg)](https://typescriptlang.org)
 
-[Download](#download) · [Why](#why-it-exists) · [Architecture](#architecture) · [Build from source](#build-from-source)
+[Download](#download) · [Screenshots](#screenshots) · [Why](#why-it-exists) · [Architecture](#architecture) · [Build from source](#build-from-source)
+
+Part of my portfolio → [**ismailcemsahin.com**](https://ismailcemsahin.com/#/proje/kopru)
 
 </div>
 
@@ -45,6 +47,54 @@ SFTP subsystem. If you can SSH in, Köprü works.
 | **Context bridge** | Assembles a system summary (metrics, service states, recent errors) and **redacts secrets out of it** before you paste it into an AI assistant. Every redaction is counted and labelled, never silent. |
 
 Ships with light/dark/system themes and multi-window support.
+
+## Screenshots
+
+> The server in these captures is a throwaway Linux target brought up purely for
+> the screenshots — every file, container and database row on it is fictional.
+> The interface language is Turkish (see [Status](#status)).
+
+**Files** — remote listing with per-profile shortcuts and recent folders. Browsing
+and transfers run on separate SFTP channels, so a large download never blocks the
+listing.
+
+![File browser](docs/ekranlar/files.webp)
+
+**Monitor** — CPU, memory, disk, load and network from a single command chain,
+charted with µPlot. Memory is measured against `MemAvailable`; `used` counts
+reclaimable cache and makes a healthy server read as full.
+
+![Monitor panel](docs/ekranlar/monitor.webp)
+
+**Docker** — containers with status, ports and live resource usage. The cheap
+census rides along every tick; the expensive `docker stats` runs only while this
+panel is mounted.
+
+![Docker panel](docs/ekranlar/docker.webp)
+
+**PostgreSQL** — schema tree, table detail, indexes with their scan counts. The
+connection runs *inside* the SSH channel; no local port is bound on your machine.
+
+![PostgreSQL panel](docs/ekranlar/postgres.webp)
+
+**Terminal** — one shell channel per tab, all over the same SSH connection. A
+dropped connection does not close the tab: the scrollback stays and a fresh shell
+attaches on reconnect.
+
+![Terminal](docs/ekranlar/terminal.webp)
+
+**Remote editor** — files fetched over SFTP and opened in Monaco. Privileged saves
+go through `sudo` via a temporary copy, with the password written to the command's
+standard input rather than its argument list.
+
+![Remote editor](docs/ekranlar/editor.webp)
+
+**Context bridge** — a configuration file collected for an AI assistant, with its
+secrets redacted first. The badge counts what was hidden; the line under it says
+what kind. Here: five credential assignments and one password inside a connection
+string.
+
+![Context bridge](docs/ekranlar/context-bridge.webp)
 
 ## Download
 

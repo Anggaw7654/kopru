@@ -1,6 +1,6 @@
 {
   "name": "kopru",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Köprü — desktop SSH control centre: terminal, files, metrics, Docker and PostgreSQL over one connection",
   "main": "./out/main/index.js",
   "scripts": {

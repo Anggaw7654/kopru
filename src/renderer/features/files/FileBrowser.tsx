@@ -140,7 +140,7 @@ export function FileBrowser({ profile }: Props): React.JSX.Element {
       window.kopru.invoke('transfer:download', { profileId, remotePaths: [entry.path] }).catch(fail)
     },
     rename: (entry: DirEntry) => {
-      void ask({ title: 'Yeni ad', detail: entry.path, defaultValue: entry.name }).then((next) => {
+      void ask({ title: t('Yeni ad'), detail: entry.path, defaultValue: entry.name }).then((next) => {
         if (next === null || next === entry.name) return
         window.kopru
           .invoke('fs:rename', {
@@ -165,7 +165,7 @@ export function FileBrowser({ profile }: Props): React.JSX.Element {
         title: t('Kısayol adı'),
         detail: target,
         defaultValue: target.split('/').filter(Boolean).at(-1) ?? target,
-        confirmLabel: 'Ekle',
+        confirmLabel: t('Ekle'),
       }).then((label) => {
         if (label === null) return
         window.kopru
@@ -258,7 +258,7 @@ export function FileBrowser({ profile }: Props): React.JSX.Element {
       <div className="files__toolbar">
         <button type="button" onClick={() => { void store.navigate(profileId, parentOf(path)) }}>↑</button>
         <Breadcrumb path={path} onNavigate={(p) => { void store.navigate(profileId, p) }} />
-        <button type="button" onClick={refresh}>Yenile</button>
+        <button type="button" onClick={refresh}>{t('Yenile')}</button>
         <button type="button" onClick={() => { void store.toggleHidden(profileId) }}>
           {showHidden ? t('Gizlileri sakla') : t('Gizlileri göster')}
         </button>
@@ -308,7 +308,7 @@ export function FileBrowser({ profile }: Props): React.JSX.Element {
 
           <table className="file-table">
             <thead>
-              <tr><th>Ad</th><th>Boyut</th><th>{t('Değiştirilme')}</th><th>{t('İzinler')}</th></tr>
+              <tr><th>{t('Ad')}</th><th>{t('Boyut')}</th><th>{t('Değiştirilme')}</th><th>{t('İzinler')}</th></tr>
             </thead>
             <tbody>
               {entries.map((entry) => (

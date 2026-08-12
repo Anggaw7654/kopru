@@ -1,5 +1,6 @@
 import { cevir, type Dil } from '../shared/i18n.js'
 import '../shared/i18n-en.js'
+import { redactDilKaynagi } from '../shared/redact.js'
 
 /**
  * Language for main-process text: native dialogs and the error messages that
@@ -15,6 +16,9 @@ let aktif: Dil = 'tr'
 export function dilAyarla(dil: Dil): void {
   aktif = dil
 }
+
+// Maskeleme etiketi de aynı dili izler.
+redactDilKaynagi(() => aktif)
 
 export function dilAl(): Dil {
   return aktif

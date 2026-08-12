@@ -52,8 +52,8 @@ Ships with light/dark/system themes and multi-window support.
 
 > The server in these captures is a throwaway Linux target brought up purely for
 > the screenshots — every file, container and database row on it is fictional.
-> These were taken before the English localisation landed, so the labels read
-> Turkish; the app now ships in both languages.
+> The app is running in English here; switching the language in *Settings*
+> gives you the same screens in Turkish.
 
 **Files** — remote listing with per-profile shortcuts and recent folders. Browsing
 and transfers run on separate SFTP channels, so a large download never blocks the

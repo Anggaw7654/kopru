@@ -64,7 +64,7 @@ export function ShortcutList({
       title: t('Kısayol adı'),
       detail: currentPath,
       defaultValue: suggested,
-      confirmLabel: 'Ekle',
+      confirmLabel: t('Ekle'),
     }).then((label) => {
       if (label === null) return
       persist([...shortcuts, { id: newId(), label, path: currentPath }])
@@ -73,7 +73,7 @@ export function ShortcutList({
 
   const rename = (shortcut: Shortcut): void => {
     void ask({
-      title: 'Yeni ad',
+      title: t('Yeni ad'),
       detail: shortcut.path,
       defaultValue: shortcut.label,
     }).then((label) => {

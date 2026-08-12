@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { cevir, type Dil } from '@shared/i18n.js'
 import '@shared/i18n-en.js'
+import { redactDilKaynagi } from '@shared/redact.js'
 
 /**
  * Interface language.
@@ -49,6 +50,8 @@ export function useT(): (kaynak: string, degerler?: Record<string, string | numb
 
 /** Startup: apply the language to <html lang> and tell main about it. */
 export function dilBaslat(): void {
+  // Maskeleme etiketi kullanıcının yapıştıracağı metne giriyor; o da dile uymalı.
+  redactDilKaynagi(() => useDilStore.getState().dil)
   const dil = useDilStore.getState().dil
   document.documentElement.lang = dil
   window.kopru.send('dil:degisti', { dil })

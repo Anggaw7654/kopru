@@ -63,7 +63,7 @@ export function ProfileForm({ editing, onDone }: Props): React.JSX.Element {
       <h2>{editing ? t('Sunucuyu düzenle') : t('Yeni sunucu')}</h2>
 
       <label>
-        Ad
+        {t('Ad')}
         <input
           value={name}
           onChange={(e) => {
@@ -228,7 +228,7 @@ export function ProfileForm({ editing, onDone }: Props): React.JSX.Element {
 
       <div className="row">
         <button type="submit" disabled={busy}>
-          {busy ? 'Kaydediliyor…' : 'Kaydet'}
+          {busy ? t('Kaydediliyor…') : t('Kaydet')}
         </button>
         <button type="button" onClick={onDone}>
           {t('Vazgeç')}

@@ -184,9 +184,9 @@ export function MonacoEditor({ profileId, file, onClose }: Props): React.JSX.Ele
         {file.readOnlyForUser && <span className="badge">yazma izni yok — sudo gerekir</span>}
         <span className="editor__status">{status}</span>
         <button type="button" disabled={saving} onClick={() => void save(false, false)}>
-          Kaydet (⌘S)
+          {t('Kaydet (⌘S)')}
         </button>
-        <button type="button" onClick={close}>Kapat</button>
+        <button type="button" onClick={close}>{t('Kapat')}</button>
       </header>
       <div ref={hostRef} className="editor__host" />
     </div>

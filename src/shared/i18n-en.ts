@@ -13,6 +13,22 @@ import { ekle } from './i18n.js'
 
 ekle({
   // ── Genel ───────────────────────────────────────────────────────────
+  'Yedek': 'Backup',
+  'Yedek al': 'Take a backup',
+  'Yedek alınıyor…': 'Backing up…',
+  '{db} yedeğini al ve indir': 'Back up {db} and download it',
+  'Kaydet': 'Save',
+  'Kaydet (⌘S)': 'Save (⌘S)',
+  'Kaydediliyor…': 'Saving…',
+  'Ekle': 'Add',
+  'Yeni ad': 'New name',
+  'Ad': 'Name',
+  'Yenile': 'Refresh',
+  'Panoya kopyala': 'Copy to clipboard',
+  'Temizle': 'Clear',
+  'Boyut': 'Size',
+  'Sayaçlar son istatistik sıfırlamasından beri geçerlidir. Yeni eklenmiş bir indeks de burada görünebilir — silmeden önce bunu göz önünde bulundurun.':
+    'The counters are since the last statistics reset. A freshly added index can show up here too — bear that in mind before dropping one.',
   'Yükleniyor…': 'Loading…',
   'Hesaplanıyor…': 'Calculating…',
   'Çalışıyor…': 'Running…',
@@ -265,6 +281,19 @@ ekle({
     'The running query in session {pid} will be cancelled. The session stays open.\n\nContinue?',
 
   // ── Bağlam köprüsü ──────────────────────────────────────────────────
+  // Maskeleme türleri — `src/shared/redact.ts` içindeki `kind` alanları.
+  // Ortak kodda TÜRKÇE bırakılıp gösterim yerinde çevriliyor: redact.ts hem
+  // ana süreçte hem arayüzde çalışıyor ve dil bilgisi taşımamalı.
+  'özel anahtar': 'private key',
+  'kimlik bilgisi ataması': 'credential assignment',
+  'bağlantı dizesindeki parola': 'password in connection string',
+  'yetkilendirme başlığı': 'authorization header',
+  'AWS anahtarı': 'AWS key',
+  'Anthropic/OpenAI anahtarı': 'Anthropic/OpenAI key',
+  'komut satırı parolası': 'command-line password',
+  'gizli dosya': 'secret file',
+  '{n} gizlendi': '{n} redacted',
+  '{n} kr': '{n} chars',
   'Claude bağlamı ({n})': 'Claude context ({n})',
   'Claude’a gönder': 'Send to Claude',
   '“Claude’a gönder”': '“Send to Claude”',

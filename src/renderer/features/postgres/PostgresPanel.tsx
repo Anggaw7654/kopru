@@ -114,9 +114,9 @@ function TableView({
           <table className="file-table">
             <thead>
               <tr>
-                <th>Ad</th>
+                <th>{t('Ad')}</th>
                 <th>Tarama</th>
-                <th>Boyut</th>
+                <th>{t('Boyut')}</th>
                 <th>{t('Tanım')}</th>
               </tr>
             </thead>
@@ -318,7 +318,7 @@ export function PostgresPanel({ profile }: { profile: Profile }): React.JSX.Elem
               setTab('backup')
             }}
           >
-            Yedek
+            {t('Yedek')}
           </button>
         </div>
       </div>
@@ -350,13 +350,13 @@ export function PostgresPanel({ profile }: { profile: Profile }): React.JSX.Elem
 
       {tab === 'backup' && (
         <div className="section">
-          <h4>Yedek al</h4>
+          <h4>{t('Yedek al')}</h4>
           <p className="hint">
             Sunucuda <code>pg_dump -Fc</code> çalıştırılır, oluşan dosya SFTP ile Mac’inize
             indirilir. İlerleme alttaki aktarım kuyruğunda görünür.
           </p>
           <button type="button" disabled={busy} onClick={() => void backup()}>
-            {busy ? 'Yedek alınıyor…' : `${database} yedeğini al ve indir`}
+            {busy ? t('Yedek alınıyor…') : t('{db} yedeğini al ve indir', { db: database })}
           </button>
           <p className="hint">
             {t('Geri yükleme bu sürümde')} <strong>yok</strong>. Yanlışlıkla yapılan bir geri yükleme,

@@ -161,8 +161,7 @@ export function HealthTab({ profileId, database }: Props): React.JSX.Element {
               </tbody>
             </table>
             <p className="hint">
-              Sayaçlar son istatistik sıfırlamasından beri geçerlidir. Yeni eklenmiş bir
-              indeks de burada görünebilir — silmeden önce bunu göz önünde bulundurun.
+              {t('Sayaçlar son istatistik sıfırlamasından beri geçerlidir. Yeni eklenmiş bir indeks de burada görünebilir — silmeden önce bunu göz önünde bulundurun.')}
             </p>
           </>
         )}

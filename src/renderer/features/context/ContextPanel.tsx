@@ -53,7 +53,7 @@ export function ContextPanel({ profileId }: Props): React.JSX.Element | null {
     <div className={`ctx ${open ? 'ctx--open' : ''}`}>
       <button type="button" className="ctx__toggle" onClick={() => { setOpen(!open) }}>
         {t('Claude bağlamı ({n})', { n: items.length })}
-        {totalRedactions > 0 && <em className="ctx__redacted">{String(totalRedactions)} gizlendi</em>}
+        {totalRedactions > 0 && <em className="ctx__redacted">{t('{n} gizlendi', { n: totalRedactions })}</em>}
         <span>{open ? '▾' : '▴'}</span>
       </button>
 
@@ -75,7 +75,7 @@ export function ContextPanel({ profileId }: Props): React.JSX.Element | null {
                   onClick={() => { setExpanded(expanded === item.id ? null : item.id) }}
                 >
                   {KIND_ICON[item.kind] ?? '•'} {item.label}
-                  <em>{String(item.content.length)} kr</em>
+                  <em>{t('{n} kr', { n: item.content.length })}</em>
                 </button>
                 <button type="button" onClick={() => { remove(item.id) }}>✕</button>
               </div>
@@ -83,7 +83,7 @@ export function ContextPanel({ profileId }: Props): React.JSX.Element | null {
               {item.redactions.length > 0 && (
                 <p className="ctx__warn">
                   {t('Çıkarıldı:')}{' '}
-                  {item.redactions.map((r) => `${r.kind} ×${String(r.count)}`).join(', ')}
+                  {item.redactions.map((r) => `${t(r.kind)} ×${String(r.count)}`).join(', ')}
                 </p>
               )}
 
@@ -111,9 +111,9 @@ export function ContextPanel({ profileId }: Props): React.JSX.Element | null {
 
           <div className="row">
             <button type="button" onClick={() => void copy()} disabled={items.length === 0}>
-              Panoya kopyala
+              {t('Panoya kopyala')}
             </button>
-            <button type="button" onClick={clear} disabled={items.length === 0}>Temizle</button>
+            <button type="button" onClick={clear} disabled={items.length === 0}>{t('Temizle')}</button>
           </div>
 
           {status !== null && <p className="hint">{status}</p>}

@@ -20,7 +20,30 @@ export interface RedactResult {
   total: number
 }
 
-const MASK = '«KÖPRÜ: gizlendi»'
+/**
+ * Maskeleme etiketi. Kullanıcının yapay zekâya YAPIŞTIRACAĞI metne girdiği
+ * için arayüz diliyle aynı olmalı — İngilizce bir oturumda Türkçe bir işaret
+ * görmek, metnin nereden geldiğini bulanıklaştırır.
+ *
+ * `cevir` doğrudan çağrılıyor: bu dosya hem ana süreçte hem arayüzde koşuyor
+ * ve ikisinin de hook'una erişemez.
+ */
+const MASK_KAYNAK = '«KÖPRÜ: gizlendi»'
+const MASK_EN = '«KÖPRÜ: redacted»'
+
+/**
+ * Aktif dili döndüren kanca. Ana süreç ve arayüz kendi diline bağlar; hiçbiri
+ * bağlamazsa Türkçe kalır — bu dosya dil bilgisi TAŞIMAZ, sorar.
+ */
+let dilKaynagi: () => 'tr' | 'en' = () => 'tr'
+
+export function redactDilKaynagi(kaynak: () => 'tr' | 'en'): void {
+  dilKaynagi = kaynak
+}
+
+function maske(): string {
+  return dilKaynagi() === 'en' ? MASK_EN : MASK_KAYNAK
+}
 
 interface Rule {
   kind: string
@@ -33,7 +56,7 @@ const RULES: Rule[] = [
     // Whole PEM block, not just the header — the key material is the payload.
     kind: 'özel anahtar',
     pattern: /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g,
-    replace: () => `-----BEGIN PRIVATE KEY-----\n${MASK}\n-----END PRIVATE KEY-----`,
+    replace: () => `-----BEGIN PRIVATE KEY-----\n${maske()}\n-----END PRIVATE KEY-----`,
   },
   {
     // KEY=value / KEY: value where the name reads like a credential. Captures
@@ -42,33 +65,33 @@ const RULES: Rule[] = [
     kind: 'kimlik bilgisi ataması',
     pattern:
       /^([ \t]*(?:export[ \t]+)?[A-Za-z0-9_.-]*(?:PASS|PWD|SECRET|TOKEN|APIKEY|API_KEY|PRIVATE|CREDENTIAL|AUTH)[A-Za-z0-9_.-]*)([ \t]*[:=][ \t]*)(.+)$/gim,
-    replace: (_match, name: string, sep: string) => `${name}${sep}${MASK}`,
+    replace: (_match, name: string, sep: string) => `${name}${sep}${maske()}`,
   },
   {
     kind: 'bağlantı dizesindeki parola',
     pattern: /\b([a-z][a-z0-9+.-]*:\/\/)([^\s:/@]+):([^\s@]+)@/gi,
-    replace: (_match, scheme: string, user: string) => `${scheme}${user}:${MASK}@`,
+    replace: (_match, scheme: string, user: string) => `${scheme}${user}:${maske()}@`,
   },
   {
     kind: 'yetkilendirme başlığı',
     pattern: /\b(Authorization\s*:\s*(?:Bearer|Basic|Token)\s+)\S+/gi,
-    replace: (_match, prefix: string) => `${prefix}${MASK}`,
+    replace: (_match, prefix: string) => `${prefix}${maske()}`,
   },
   {
     kind: 'AWS anahtarı',
     pattern: /\b(?:AKIA|ASIA)[0-9A-Z]{16}\b/g,
-    replace: () => MASK,
+    replace: () => maske(),
   },
   {
     kind: 'Anthropic/OpenAI anahtarı',
     pattern: /\bsk-[A-Za-z0-9_-]{20,}/g,
-    replace: () => MASK,
+    replace: () => maske(),
   },
   {
     // psql/mysql style flags where the value follows on the same line.
     kind: 'komut satırı parolası',
     pattern: /(--password[= ]|-p(?=\S)|PGPASSWORD=)(\S+)/g,
-    replace: (_match, flag: string) => `${flag}${MASK}`,
+    replace: (_match, flag: string) => `${flag}${maske()}`,
   },
 ]
 
@@ -85,7 +108,10 @@ export function redact(text: string, sourcePath?: string): RedactResult {
   if (sourcePath !== undefined && isSecretFile(sourcePath)) {
     const lines = text.split('\n').filter((line) => line.trim() !== '').length
     return {
-      text: `${MASK}\n(bu dosyanın tamamı gizli kabul edildi — ${String(lines)} satır gönderilmedi)`,
+      text:
+        dilKaynagi() === 'en'
+          ? `${maske()}\n(the whole file was treated as secret — ${String(lines)} lines were not sent)`
+          : `${maske()}\n(bu dosyanın tamamı gizli kabul edildi — ${String(lines)} satır gönderilmedi)`,
       redactions: [{ kind: 'gizli dosya', count: 1 }],
       total: 1,
     }

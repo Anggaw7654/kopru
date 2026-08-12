@@ -119,7 +119,7 @@ export function MonitorSettings({ profile, onClose }: Props): React.JSX.Element 
         </div>
 
         <div className="row">
-          <button type="button" onClick={() => void apply()}>Kaydet</button>
+          <button type="button" onClick={() => void apply()}>{t('Kaydet')}</button>
           <button type="button" onClick={onClose}>{t('Vazgeç')}</button>
         </div>
         <p className="hint">

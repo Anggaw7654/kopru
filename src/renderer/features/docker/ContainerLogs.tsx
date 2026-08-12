@@ -95,7 +95,7 @@ export function ContainerLogs({ profileId, container, onClose }: Props): React.J
         >
           {t('Claude’a gönder')}
         </button>
-        <button type="button" onClick={onClose}>Kapat</button>
+        <button type="button" onClick={onClose}>{t('Kapat')}</button>
       </header>
 
       {error !== null && <p className="error">{error}</p>}
